@@ -5,6 +5,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -1231,10 +1233,18 @@ fun CustomBottomNavigation(
   selectedTab: String,
   onTabSelected: (String) -> Unit
 ) {
+  val navItems = listOf(
+    NavItemData("خريطة", "خريطة", Icons.Filled.Map, Icons.Outlined.Map),
+    NavItemData("المفضلة", "المفضلة", Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+    NavItemData("الرئيسية", "الرئيسية", Icons.Filled.Home, Icons.Outlined.Home),
+    NavItemData("الاختبارات", "الاختبارات", Icons.Filled.Assignment, Icons.Outlined.Assignment),
+    NavItemData("المزيد", "المزيد", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
+  )
+
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(horizontal = 16.dp, vertical = 14.dp),
+      .padding(horizontal = 14.dp, vertical = 10.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
     Row(
@@ -1242,105 +1252,102 @@ fun CustomBottomNavigation(
         .fillMaxWidth()
         .height(68.dp)
         .background(
-          MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+          MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.96f),
           RoundedCornerShape(34.dp)
         )
         .border(
           1.dp,
-          MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
+          MaterialTheme.colorScheme.primary.copy(alpha = 0.28f),
           RoundedCornerShape(34.dp)
         )
-        .padding(horizontal = 12.dp),
-      horizontalArrangement = Arrangement.SpaceBetween,
+        .padding(horizontal = 6.dp),
+      horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically
     ) {
-      // In RTL: First item is rightmost
-      BottomNavItem(
-        title = "خريطة",
-        icon = Icons.Outlined.Map,
-        isSelected = selectedTab == "خريطة",
-        onClick = { onTabSelected("خريطة") }
-      )
-      BottomNavItem(
-        title = "المفضلة",
-        icon = Icons.Outlined.FavoriteBorder,
-        isSelected = selectedTab == "المفضلة",
-        onClick = { onTabSelected("المفضلة") }
-      )
-
-      // Center Active Home Item
-      Box(
-        modifier = Modifier
-          .offset(y = (-8).dp)
-          .size(56.dp)
-          .background(
-            Brush.linearGradient(
-              colors = listOf(
-                MaterialTheme.colorScheme.primary,
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
-              )
-            ),
-            CircleShape
-          )
-          .border(2.dp, MaterialTheme.colorScheme.background, CircleShape)
-          .clickable { onTabSelected("الرئيسية") },
-        contentAlignment = Alignment.Center
-      ) {
-        Icon(
-          imageVector = Icons.Filled.Home,
-          contentDescription = "Home",
-          tint = MaterialTheme.colorScheme.background,
-          modifier = Modifier.size(26.dp)
+      navItems.forEach { item ->
+        val isSelected = selectedTab == item.id
+        val offsetY by animateDpAsState(
+          targetValue = if (isSelected) (-8).dp else 0.dp,
+          animationSpec = tween(durationMillis = 220),
+          label = "nav_offset_${item.id}"
         )
-      }
 
-      BottomNavItem(
-        title = "الاختبارات",
-        icon = Icons.Outlined.Assignment,
-        isSelected = selectedTab == "الاختبارات",
-        onClick = { onTabSelected("الاختبارات") }
-      )
-      BottomNavItem(
-        title = "المزيد",
-        icon = Icons.Outlined.MoreHoriz,
-        isSelected = selectedTab == "المزيد",
-        onClick = { onTabSelected("المزيد") }
-      )
+        Column(
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center,
+          modifier = Modifier
+            .weight(1f)
+            .offset(y = offsetY)
+            .clip(RoundedCornerShape(24.dp))
+            .clickable { onTabSelected(item.id) }
+            .padding(vertical = 3.dp)
+        ) {
+          if (isSelected) {
+            Box(
+              modifier = Modifier
+                .size(48.dp)
+                .background(
+                  Brush.linearGradient(
+                    colors = listOf(
+                      MaterialTheme.colorScheme.primary,
+                      MaterialTheme.colorScheme.primary.copy(alpha = 0.85f)
+                    )
+                  ),
+                  CircleShape
+                )
+                .border(2.dp, MaterialTheme.colorScheme.background, CircleShape),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = item.activeIcon,
+                contentDescription = item.title,
+                tint = MaterialTheme.colorScheme.background,
+                modifier = Modifier.size(24.dp)
+              )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+              text = item.title,
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.primary,
+              fontSize = 10.5.sp,
+              fontWeight = FontWeight.Bold,
+              maxLines = 1
+            )
+          } else {
+            Box(
+              modifier = Modifier.size(32.dp),
+              contentAlignment = Alignment.Center
+            ) {
+              Icon(
+                imageVector = item.inactiveIcon,
+                contentDescription = item.title,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                modifier = Modifier.size(22.dp)
+              )
+            }
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+              text = item.title,
+              style = MaterialTheme.typography.labelSmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+              fontSize = 10.sp,
+              fontWeight = FontWeight.Normal,
+              maxLines = 1
+            )
+          }
+        }
+      }
     }
   }
 }
 
-@Composable
-fun BottomNavItem(
-  title: String,
-  icon: androidx.compose.ui.graphics.vector.ImageVector,
-  isSelected: Boolean,
-  onClick: () -> Unit
-) {
-  Column(
-    horizontalAlignment = Alignment.CenterHorizontally,
-    modifier = Modifier
-      .clickable(onClick = onClick)
-      .padding(horizontal = 6.dp, vertical = 2.dp)
-  ) {
-    Icon(
-      imageVector = icon,
-      contentDescription = title,
-      tint = if (isSelected) MaterialTheme.colorScheme.primary
-      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-      modifier = Modifier.size(22.dp)
-    )
-    Spacer(modifier = Modifier.height(4.dp))
-    Text(
-      text = title,
-      style = MaterialTheme.typography.labelSmall,
-      color = if (isSelected) MaterialTheme.colorScheme.primary
-      else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-      fontSize = 10.5.sp,
-      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-    )
-  }
-}
+data class NavItemData(
+  val id: String,
+  val title: String,
+  val activeIcon: androidx.compose.ui.graphics.vector.ImageVector,
+  val inactiveIcon: androidx.compose.ui.graphics.vector.ImageVector
+)
 
 // Data Models & Comprehensive Lists
 

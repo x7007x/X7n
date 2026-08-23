@@ -1,0 +1,74 @@
+name: Fast Build Tiny Android APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build & Optimize APK
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17 (Zulu)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Prepare Build Environment
+        run: |
+          # Copy .env.example to .env if .env doesn't exist
+          if [ -f ".env.example" ] && [ ! -f ".env" ]; then
+            cp .env.example .env
+          fi
+          
+          # Restore debug keystore if base64 encoded file exists
+          if [ -f "debug.keystore.base64" ] && [ ! -f "debug.keystore" ]; then
+            base64 -d debug.keystore.base64 > debug.keystore
+          fi
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: wrapper
+          cache-read-only: false
+
+      - name: Fast Build Debug APK
+        run: |
+          ./gradlew assembleDebug \
+            --no-daemon \
+            --parallel \
+            --build-cache \
+            -Dorg.gradle.jvmargs="-Xmx3072m -XX:+UseParallelGC -XX:MaxMetaspaceSize=512m"
+
+      - name: Inspect APK Size & Output
+        run: |
+          echo "=== Generated APK Files ==="
+          ls -lh app/build/outputs/apk/debug/ || ls -lh app/build/outputs/apk/*/*
+          
+          APK_FILE=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+          if [ -f "$APK_FILE" ]; then
+            echo "Main APK found: $APK_FILE"
+            echo "APK Size: $(du -sh "$APK_FILE" | cut -f1)"
+          fi
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AncientEgypt-App-APK
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 14
