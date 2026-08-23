@@ -955,13 +955,15 @@ fun CustomCurvedBottomNavigation(
 
       // Center X of active arch (RTL from right to left: Index 0 is on rightmost edge)
       val activeCenterX = w - itemWidth * (animatedIndex + 0.5f)
-      val archWidth = 66.dp.toPx()
-      val archPeakHeight = 14.dp.toPx()
+      val archHalfWidth = 32.dp.toPx()
+      val archPeakHeight = 12.dp.toPx()
 
       val path = Path().apply {
-        // Start top-left corner
-        moveTo(0f, cornerRadius)
-        // Top-left arc
+        // Start bottom-left
+        moveTo(0f, h - cornerRadius)
+        // Left vertical line up
+        lineTo(0f, cornerRadius)
+        // Top-left rounded corner
         arcTo(
           rect = Rect(0f, 0f, cornerRadius * 2, cornerRadius * 2),
           startAngleDegrees = 180f,
@@ -969,28 +971,24 @@ fun CustomCurvedBottomNavigation(
           forceMoveTo = false
         )
 
-        // Calculate Arch Left and Right points in Canvas coordinates
-        val archLeft = (activeCenterX - archWidth / 2).coerceAtLeast(cornerRadius)
-        val archRight = (activeCenterX + archWidth / 2).coerceAtMost(w - cornerRadius)
-
-        // Top line leading to arch
-        lineTo(archLeft, 0f)
+        // Top line leading to arch start
+        lineTo(activeCenterX - archHalfWidth, 0f)
 
         // Smooth cubic curve rising around active circle
         cubicTo(
-          activeCenterX - archWidth * 0.35f, 0f,
-          activeCenterX - archWidth * 0.25f, -archPeakHeight,
+          activeCenterX - archHalfWidth * 0.5f, 0f,
+          activeCenterX - archHalfWidth * 0.35f, -archPeakHeight,
           activeCenterX, -archPeakHeight
         )
         cubicTo(
-          activeCenterX + archWidth * 0.25f, -archPeakHeight,
-          activeCenterX + archWidth * 0.35f, 0f,
-          archRight, 0f
+          activeCenterX + archHalfWidth * 0.35f, -archPeakHeight,
+          activeCenterX + archHalfWidth * 0.5f, 0f,
+          activeCenterX + archHalfWidth, 0f
         )
 
-        // Top line to top-right corner
+        // Top line continuing to top-right corner
         lineTo(w - cornerRadius, 0f)
-        // Top-right arc
+        // Top-right rounded corner
         arcTo(
           rect = Rect(w - cornerRadius * 2, 0f, w, cornerRadius * 2),
           startAngleDegrees = 270f,
@@ -998,8 +996,9 @@ fun CustomCurvedBottomNavigation(
           forceMoveTo = false
         )
 
-        // Bottom right arc
+        // Right vertical line down
         lineTo(w, h - cornerRadius)
+        // Bottom-right rounded corner
         arcTo(
           rect = Rect(w - cornerRadius * 2, h - cornerRadius * 2, w, h),
           startAngleDegrees = 0f,
@@ -1007,8 +1006,9 @@ fun CustomCurvedBottomNavigation(
           forceMoveTo = false
         )
 
-        // Bottom line to bottom left
+        // Bottom horizontal line
         lineTo(cornerRadius, h)
+        // Bottom-left rounded corner
         arcTo(
           rect = Rect(0f, h - cornerRadius * 2, cornerRadius * 2, h),
           startAngleDegrees = 90f,
