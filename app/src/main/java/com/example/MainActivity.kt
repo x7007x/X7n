@@ -871,7 +871,7 @@ fun SearchBarSection(
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(horizontal = 20.dp, vertical = 2.dp)
+      .padding(horizontal = 20.dp, vertical = 8.dp)
   ) {
     TextField(
       value = query,
@@ -932,9 +932,9 @@ fun CategoriesSection(
   LazyRow(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(vertical = 14.dp),
+      .padding(vertical = 18.dp),
     contentPadding = PaddingValues(horizontal = 20.dp),
-    horizontalArrangement = Arrangement.spacedBy(10.dp)
+    horizontalArrangement = Arrangement.spacedBy(12.dp)
   ) {
     items(categoriesList) { category ->
       val isSelected = category.title == selectedCategory
@@ -1004,7 +1004,7 @@ fun SectionHeader(
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(horizontal = 20.dp, vertical = 8.dp),
+      .padding(horizontal = 20.dp, vertical = 12.dp),
     horizontalArrangement = Arrangement.SpaceBetween,
     verticalAlignment = Alignment.CenterVertically
   ) {
@@ -1077,143 +1077,129 @@ fun EgyptCard(
   isBookmarked: Boolean,
   onBookmarkToggle: () -> Unit
 ) {
-  Card(
-    shape = RoundedCornerShape(18.dp),
-    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)),
+  Box(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(horizontal = 20.dp, vertical = 7.dp)
-      .height(144.dp)
-      .clickable { /* Open details */ }
+      .padding(horizontal = 20.dp, vertical = 8.dp)
   ) {
-    Row(
-      modifier = Modifier.fillMaxSize()
+    Card(
+      shape = RoundedCornerShape(22.dp),
+      colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+      border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.18f)),
+      modifier = Modifier
+        .fillMaxWidth()
+        .height(150.dp)
+        .clickable { /* Open details */ }
     ) {
-      // 1. Right Actions Section (Side Action Bar)
-      Column(
-        modifier = Modifier
-          .weight(0.13f)
-          .fillMaxHeight()
-          .background(MaterialTheme.colorScheme.background.copy(alpha = 0.35f)),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-      ) {
-        IconButton(
-          onClick = onBookmarkToggle,
-          modifier = Modifier.size(32.dp)
+      Row(modifier = Modifier.fillMaxSize()) {
+        Box(
+          modifier = Modifier
+            .weight(0.38f)
+            .fillMaxHeight()
         ) {
-          Icon(
-            imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-            contentDescription = "Bookmark",
-            tint = if (isBookmarked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
-            modifier = Modifier.size(22.dp)
+          Image(
+            painter = painterResource(id = item.imageRes),
+            contentDescription = item.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
           )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        Icon(
-          imageVector = Icons.Outlined.HistoryEdu,
-          contentDescription = "Hieroglyphic Symbol 1",
-          tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
-          modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Icon(
-          imageVector = Icons.Outlined.AutoAwesome,
-          contentDescription = "Hieroglyphic Symbol 2",
-          tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.45f),
-          modifier = Modifier.size(18.dp)
-        )
-      }
-
-      // Vertical Divider
-      Box(
-        modifier = Modifier
-          .width(1.dp)
-          .fillMaxHeight()
-          .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.15f))
-      )
-
-      // 2. Center Content Section
-      Column(
-        modifier = Modifier
-          .weight(0.53f)
-          .fillMaxHeight()
-          .padding(vertical = 12.dp, horizontal = 12.dp),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.Center
-      ) {
-        Text(
-          text = item.title,
-          style = MaterialTheme.typography.titleMedium,
-          fontWeight = FontWeight.Bold,
-          color = MaterialTheme.colorScheme.primary,
-          maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = 17.sp
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-          horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-          Badge(text = item.tag1)
-          if (item.tag2.isNotBlank()) {
-            Badge(text = item.tag2)
+          Box(
+            modifier = Modifier
+              .fillMaxSize()
+              .background(
+                Brush.horizontalGradient(
+                  colors = listOf(
+                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f),
+                    Color.Transparent
+                  )
+                )
+              )
+          )
+          Box(
+            modifier = Modifier
+              .align(Alignment.TopStart)
+              .padding(10.dp)
+              .size(32.dp)
+              .clip(CircleShape)
+              .background(MaterialTheme.colorScheme.background.copy(alpha = 0.55f))
+              .clickable(onClick = onBookmarkToggle),
+            contentAlignment = Alignment.Center
+          ) {
+            Icon(
+              imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+              contentDescription = "Bookmark",
+              tint = MaterialTheme.colorScheme.primary,
+              modifier = Modifier.size(18.dp)
+            )
           }
         }
 
-        Spacer(modifier = Modifier.height(10.dp))
-
-        Row(
-          verticalAlignment = Alignment.CenterVertically
+        Column(
+          modifier = Modifier
+            .weight(0.62f)
+            .fillMaxHeight()
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+          verticalArrangement = Arrangement.Center
         ) {
-          Icon(
-            imageVector = item.subtitleIcon,
-            contentDescription = "Info",
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(13.dp)
-          )
-          Spacer(modifier = Modifier.width(5.dp))
           Text(
-            text = item.subtitle,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            text = item.title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            fontSize = 11.sp
+            fontSize = 18.sp
           )
+
+          Spacer(modifier = Modifier.height(10.dp))
+
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Badge(text = item.tag1)
+            if (item.tag2.isNotBlank()) {
+              Badge(text = item.tag2)
+            }
+          }
+
+          Spacer(modifier = Modifier.height(12.dp))
+
+          Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+              imageVector = item.subtitleIcon,
+              contentDescription = "Info",
+              tint = MaterialTheme.colorScheme.onSurfaceVariant,
+              modifier = Modifier.size(13.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+              text = item.subtitle,
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+              maxLines = 1,
+              overflow = TextOverflow.Ellipsis,
+              fontSize = 12.sp
+            )
+          }
         }
       }
+    }
 
-      // 3. Left Image Section (With Gradient and NO Arrow)
-      Box(
-        modifier = Modifier
-          .weight(0.34f)
-          .fillMaxHeight()
-      ) {
-        Image(
-          painter = painterResource(id = item.imageRes),
-          contentDescription = item.title,
-          contentScale = ContentScale.Crop,
-          modifier = Modifier.fillMaxSize()
-        )
-        
-        // Gradient overlay blending image smoothly with card container
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(
-              Brush.horizontalGradient(
-                colors = listOf(
-                  Color.Transparent,
-                  MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-                )
-              )
-            )
-        )
-      }
+    Box(
+      modifier = Modifier
+        .align(Alignment.CenterEnd)
+        .offset(x = 10.dp)
+        .size(30.dp)
+        .clip(CircleShape)
+        .background(MaterialTheme.colorScheme.background)
+        .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f), CircleShape)
+        .clickable { /* Open details */ },
+      contentAlignment = Alignment.Center
+    ) {
+      Icon(
+        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+        contentDescription = "Open",
+        tint = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.size(18.dp)
+      )
     }
   }
 }
