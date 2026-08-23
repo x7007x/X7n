@@ -1,12 +1,17 @@
 package com.example
 
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -22,7 +27,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
@@ -32,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -41,6 +44,7 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -51,7 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.theme.MyApplicationTheme
 
-// Gold & Glass Palette matching screenshot
+// Gold & Glass Palette matching Egyptian Royal aesthetics
 val GoldMain = Color(0xFFDFB24C)
 val GoldLightAccent = Color(0xFFF5D77F)
 val GoldMuted = Color(0xFFB89640)
@@ -69,16 +73,20 @@ class MainActivity : ComponentActivity() {
     setContent {
       CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         MyApplicationTheme {
+          val context = LocalContext.current
           var currentNavTab by remember { mutableStateOf("الرئيسية") }
           var bookmarkedIds by remember { 
             mutableStateOf(setOf("king_ramses2", "pyr_khufu", "art_mask")) 
           }
           var isViewingAll by remember { mutableStateOf(false) }
           var viewAllCategory by remember { mutableStateOf("الكل") }
+          var selectedArticleItem by remember { mutableStateOf<EgyptItem?>(null) }
 
-          // Handle Android system back press
-          BackHandler(enabled = isViewingAll || currentNavTab != "الرئيسية") {
-            if (isViewingAll) {
+          // System Back Handler
+          BackHandler(enabled = selectedArticleItem != null || isViewingAll || currentNavTab != "الرئيسية") {
+            if (selectedArticleItem != null) {
+              selectedArticleItem = null
+            } else if (isViewingAll) {
               isViewingAll = false
             } else if (currentNavTab != "الرئيسية") {
               currentNavTab = "الرئيسية"
@@ -88,13 +96,16 @@ class MainActivity : ComponentActivity() {
           Scaffold(
             modifier = Modifier.fillMaxSize(),
             bottomBar = {
-              CustomCurvedBottomNavigation(
-                selectedTab = if (isViewingAll) "الرئيسية" else currentNavTab,
-                onTabSelected = { tab ->
-                  isViewingAll = false
-                  currentNavTab = tab
-                }
-              )
+              if (selectedArticleItem == null) {
+                CustomCurvedBottomNavigation(
+                  selectedTab = if (isViewingAll) "الرئيسية" else currentNavTab,
+                  onTabSelected = { tab ->
+                    isViewingAll = false
+                    selectedArticleItem = null
+                    currentNavTab = tab
+                  }
+                )
+              }
             },
             containerColor = DarkPageBg
           ) { innerPadding ->
@@ -105,16 +116,29 @@ class MainActivity : ComponentActivity() {
                 .background(DarkPageBg)
             ) {
               when {
+                selectedArticleItem != null -> {
+                  ArticleDetailScreen(
+                    item = selectedArticleItem!!,
+                    isBookmarked = bookmarkedIds.contains(selectedArticleItem!!.id),
+                    onBookmarkToggle = {
+                      val id = selectedArticleItem!!.id
+                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                    },
+                    onShareClick = {
+                      shareEgyptArticle(context, selectedArticleItem!!)
+                    },
+                    onBack = { selectedArticleItem = null }
+                  )
+                }
                 isViewingAll -> {
                   ViewAllScreen(
                     initialCategory = viewAllCategory,
                     bookmarkedIds = bookmarkedIds,
                     onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) {
-                        bookmarkedIds - id
-                      } else {
-                        bookmarkedIds + id
-                      }
+                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                    },
+                    onItemClick = { item ->
+                      selectedArticleItem = item
                     },
                     onBack = { isViewingAll = false }
                   )
@@ -123,11 +147,10 @@ class MainActivity : ComponentActivity() {
                   HomeScreen(
                     bookmarkedIds = bookmarkedIds,
                     onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) {
-                        bookmarkedIds - id
-                      } else {
-                        bookmarkedIds + id
-                      }
+                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                    },
+                    onItemClick = { item ->
+                      selectedArticleItem = item
                     },
                     onViewAllClick = { category ->
                       viewAllCategory = category
@@ -139,11 +162,10 @@ class MainActivity : ComponentActivity() {
                   FavoritesScreen(
                     bookmarkedIds = bookmarkedIds,
                     onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) {
-                        bookmarkedIds - id
-                      } else {
-                        bookmarkedIds + id
-                      }
+                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                    },
+                    onItemClick = { item ->
+                      selectedArticleItem = item
                     },
                     onExploreClick = {
                       currentNavTab = "الرئيسية"
@@ -151,7 +173,7 @@ class MainActivity : ComponentActivity() {
                   )
                 }
                 currentNavTab == "خريطة" -> {
-                  MapScreen()
+                  MapScreen(onItemClick = { selectedArticleItem = it })
                 }
                 currentNavTab == "الاختبارات" -> {
                   QuizScreen()
@@ -168,12 +190,17 @@ class MainActivity : ComponentActivity() {
   }
 }
 
+// -------------------------------------------------------------
+// HOME SCREEN
+// -------------------------------------------------------------
 @Composable
 fun HomeScreen(
   bookmarkedIds: Set<String>,
   onBookmarkToggle: (String) -> Unit,
+  onItemClick: (EgyptItem) -> Unit,
   onViewAllClick: (String) -> Unit
 ) {
+  val context = LocalContext.current
   var selectedCategory by remember { mutableStateOf("الملوك") }
   var searchQuery by remember { mutableStateOf("") }
 
@@ -252,12 +279,14 @@ fun HomeScreen(
         ExactPharaohCard(
           item = item,
           isBookmarked = bookmarkedIds.contains(item.id),
-          onBookmarkToggle = { onBookmarkToggle(item.id) }
+          onBookmarkToggle = { onBookmarkToggle(item.id) },
+          onShareClick = { shareEgyptArticle(context, item) },
+          onClick = { onItemClick(item) }
         )
       }
     }
     item {
-      Spacer(modifier = Modifier.height(115.dp)) // padding for floating bottom nav
+      Spacer(modifier = Modifier.height(115.dp))
     }
   }
 }
@@ -690,7 +719,7 @@ fun ExactSectionHeader(
         .padding(horizontal = 6.dp, vertical = 4.dp)
     ) {
       Icon(
-        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
         contentDescription = "View All",
         tint = GoldMain,
         modifier = Modifier.size(16.dp)
@@ -707,13 +736,15 @@ fun ExactSectionHeader(
 }
 
 // -------------------------------------------------------------
-// EXACT PHARAOH CARD (COPIED EXACTLY FROM UPLOADED SCREENSHOT)
+// EXACT PHARAOH CARD (CLEAN: NO LEFT ARROW, BOOKMARK & SHARE ON RIGHT)
 // -------------------------------------------------------------
 @Composable
 fun ExactPharaohCard(
   item: EgyptItem,
   isBookmarked: Boolean,
-  onBookmarkToggle: () -> Unit
+  onBookmarkToggle: () -> Unit,
+  onShareClick: () -> Unit,
+  onClick: () -> Unit
 ) {
   Card(
     shape = RoundedCornerShape(20.dp),
@@ -723,65 +754,47 @@ fun ExactPharaohCard(
       .fillMaxWidth()
       .padding(horizontal = 18.dp, vertical = 6.dp)
       .height(138.dp)
-      .clickable { /* Open Details */ }
+      .clickable(onClick = onClick)
   ) {
     Row(
       modifier = Modifier.fillMaxSize(),
       verticalAlignment = Alignment.CenterVertically
     ) {
-      // 1. LEFT SIDE: Arrow "<" + Pharaoh Statue Image
-      Row(
+      // 1. LEFT SIDE: Pharaoh Statue Image directly (NO arrow next to image)
+      Box(
         modifier = Modifier
-          .weight(0.36f)
+          .weight(0.35f)
           .fillMaxHeight(),
-        verticalAlignment = Alignment.CenterVertically
+        contentAlignment = Alignment.Center
       ) {
-        // Left Arrow "<"
-        Icon(
-          imageVector = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
-          contentDescription = "Open",
-          tint = GoldMain.copy(alpha = 0.7f),
-          modifier = Modifier
-            .padding(start = 10.dp)
-            .size(20.dp)
-        )
-
-        // Pharaoh Statue
-        Box(
+        Image(
+          painter = painterResource(id = item.imageRes),
+          contentDescription = item.title,
+          contentScale = ContentScale.Crop,
           modifier = Modifier
             .fillMaxHeight()
-            .weight(1f),
-          contentAlignment = Alignment.Center
-        ) {
-          Image(
-            painter = painterResource(id = item.imageRes),
-            contentDescription = item.title,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-              .fillMaxHeight()
-              .fillMaxWidth()
-              .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-          )
-          // Soft radial/horizontal mask so statue blends seamlessly into the card
-          Box(
-            modifier = Modifier
-              .fillMaxSize()
-              .background(
-                Brush.horizontalGradient(
-                  colors = listOf(
-                    Color.Transparent,
-                    GlassCardBg.copy(alpha = 0.7f)
-                  )
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
+        )
+        // Soft gradient mask so statue blends seamlessly into the card
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(
+              Brush.horizontalGradient(
+                colors = listOf(
+                  Color.Transparent,
+                  GlassCardBg.copy(alpha = 0.75f)
                 )
               )
-          )
-        }
+            )
+        )
       }
 
       // 2. CENTER CONTENT: Title + Badges + Date
       Column(
         modifier = Modifier
-          .weight(0.50f)
+          .weight(0.51f)
           .fillMaxHeight()
           .padding(vertical = 12.dp, horizontal = 10.dp),
         verticalArrangement = Arrangement.Center,
@@ -809,7 +822,7 @@ fun ExactPharaohCard(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        // Date Row: Calendar Icon + Date Text
+        // Date Row: Calendar/Location Icon + Date Text
         Row(verticalAlignment = Alignment.CenterVertically) {
           Text(
             text = item.subtitle,
@@ -821,8 +834,8 @@ fun ExactPharaohCard(
           )
           Spacer(modifier = Modifier.width(5.dp))
           Icon(
-            imageVector = Icons.Outlined.CalendarToday,
-            contentDescription = "Date",
+            imageVector = item.subtitleIcon,
+            contentDescription = "Info",
             tint = GoldMuted,
             modifier = Modifier.size(13.dp)
           )
@@ -837,91 +850,42 @@ fun ExactPharaohCard(
           .background(GlassBorderColor.copy(alpha = 0.4f))
       )
 
-      // 3. FAR RIGHT: Vertical Sidebar with Bookmark & Stacked Hieroglyphs
+      // 3. FAR RIGHT: Vertical Sidebar with Bookmark & Share Actions
       Column(
         modifier = Modifier
           .weight(0.14f)
           .fillMaxHeight()
           .background(Color(0x400C0D10)),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.SpaceEvenly
       ) {
         // Bookmark Button at Top
         IconButton(
           onClick = onBookmarkToggle,
-          modifier = Modifier.size(30.dp)
+          modifier = Modifier.size(32.dp)
         ) {
           Icon(
             imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
             contentDescription = "Bookmark",
             tint = if (isBookmarked) GoldMain else GoldMuted.copy(alpha = 0.85f),
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(21.dp)
           )
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        // Stacked Hieroglyphic Symbols
-        HieroglyphSymbol1(modifier = Modifier.size(18.dp))
-        Spacer(modifier = Modifier.height(6.dp))
-        HieroglyphSymbol2(modifier = Modifier.size(18.dp))
+        // Share Button at Bottom
+        IconButton(
+          onClick = onShareClick,
+          modifier = Modifier.size(32.dp)
+        ) {
+          Icon(
+            imageVector = Icons.Outlined.Share,
+            contentDescription = "Share",
+            tint = GoldMuted.copy(alpha = 0.85f),
+            modifier = Modifier.size(20.dp)
+          )
+        }
       }
     }
-  }
-}
-
-// Egyptian Hieroglyphic Vector Assets
-@Composable
-fun HieroglyphSymbol1(modifier: Modifier = Modifier) {
-  Canvas(modifier = modifier) {
-    val w = size.width
-    val h = size.height
-    val gold = GoldMuted.copy(alpha = 0.7f)
-    val strokeWidth = 1.6.dp.toPx()
-
-    // Eye/Scribe reed symbol
-    drawOval(
-      color = gold,
-      topLeft = Offset(w * 0.1f, h * 0.3f),
-      size = androidx.compose.ui.geometry.Size(w * 0.8f, h * 0.4f),
-      style = Stroke(width = strokeWidth)
-    )
-    drawLine(
-      color = gold,
-      start = Offset(w * 0.2f, h * 0.5f),
-      end = Offset(w * 0.8f, h * 0.5f),
-      strokeWidth = strokeWidth
-    )
-  }
-}
-
-@Composable
-fun HieroglyphSymbol2(modifier: Modifier = Modifier) {
-  Canvas(modifier = modifier) {
-    val w = size.width
-    val h = size.height
-    val gold = GoldMuted.copy(alpha = 0.7f)
-    val strokeWidth = 1.6.dp.toPx()
-
-    // Ankh / Key of life simplified outline
-    drawCircle(
-      color = gold,
-      radius = w * 0.25f,
-      center = Offset(w * 0.5f, h * 0.28f),
-      style = Stroke(width = strokeWidth)
-    )
-    drawLine(
-      color = gold,
-      start = Offset(w * 0.5f, h * 0.53f),
-      end = Offset(w * 0.5f, h * 0.95f),
-      strokeWidth = strokeWidth
-    )
-    drawLine(
-      color = gold,
-      start = Offset(w * 0.2f, h * 0.65f),
-      end = Offset(w * 0.8f, h * 0.65f),
-      strokeWidth = strokeWidth
-    )
   }
 }
 
@@ -948,7 +912,7 @@ fun GlassBadge(text: String) {
 }
 
 // -------------------------------------------------------------
-// DYNAMIC CURVED BOTTOM NAVIGATION (WITH DYNAMIC CIRCLE & ARCH)
+// DYNAMIC CURVED BOTTOM NAVIGATION (PERFECT RTL COORDINATES)
 // -------------------------------------------------------------
 @Composable
 fun CustomCurvedBottomNavigation(
@@ -977,7 +941,7 @@ fun CustomCurvedBottomNavigation(
       .padding(horizontal = 14.dp, vertical = 12.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
-    // Custom Canvas drawing the navbar with dynamic curved arch around active item
+    // Custom Canvas drawing the navbar with dynamic curved arch matching RTL position
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
@@ -989,8 +953,8 @@ fun CustomCurvedBottomNavigation(
       val itemCount = 5
       val itemWidth = w / itemCount
 
-      // Center X of active arch (RTL from right to left)
-      val activeCenterX = itemWidth * (animatedIndex + 0.5f)
+      // Center X of active arch (RTL from right to left: Index 0 is on rightmost edge)
+      val activeCenterX = w - itemWidth * (animatedIndex + 0.5f)
       val archWidth = 66.dp.toPx()
       val archPeakHeight = 14.dp.toPx()
 
@@ -1005,10 +969,11 @@ fun CustomCurvedBottomNavigation(
           forceMoveTo = false
         )
 
-        // Top line leading to arch
+        // Calculate Arch Left and Right points in Canvas coordinates
         val archLeft = (activeCenterX - archWidth / 2).coerceAtLeast(cornerRadius)
         val archRight = (activeCenterX + archWidth / 2).coerceAtMost(w - cornerRadius)
 
+        // Top line leading to arch
         lineTo(archLeft, 0f)
 
         // Smooth cubic curve rising around active circle
@@ -1164,15 +1129,467 @@ data class NavItemData(
 )
 
 // -------------------------------------------------------------
-// VIEW ALL & FAVORITES SCREENS WITH GLASS STYLING
+// COMPREHENSIVE ARTICLE DETAIL SCREEN (MARKDOWN, TABLES & RICH DATA)
+// -------------------------------------------------------------
+@Composable
+fun ArticleDetailScreen(
+  item: EgyptItem,
+  isBookmarked: Boolean,
+  onBookmarkToggle: () -> Unit,
+  onShareClick: () -> Unit,
+  onBack: () -> Unit
+) {
+  val articleData = remember(item.id) { getDetailedArticle(item.id) }
+
+  LazyColumn(
+    modifier = Modifier
+      .fillMaxSize()
+      .background(DarkPageBg)
+  ) {
+    // 1. Top Hero Image with Glass Action Buttons
+    item {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(280.dp)
+      ) {
+        Image(
+          painter = painterResource(id = item.imageRes),
+          contentDescription = item.title,
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.fillMaxSize()
+        )
+
+        // Dark gradient overlay
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(
+              Brush.verticalGradient(
+                colors = listOf(
+                  Color(0x990C0D10),
+                  Color(0x660C0D10),
+                  DarkPageBg
+                )
+              )
+            )
+        )
+
+        // Top Actions (Back, Share, Bookmark)
+        Row(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 18.dp)
+            .align(Alignment.TopCenter),
+          horizontalArrangement = Arrangement.SpaceBetween,
+          verticalAlignment = Alignment.CenterVertically
+        ) {
+          // Back Button
+          IconButton(
+            onClick = onBack,
+            modifier = Modifier
+              .size(42.dp)
+              .border(1.2.dp, GlassBorderColor, CircleShape)
+              .background(GlassDarkBg, CircleShape)
+          ) {
+            Icon(
+              imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+              contentDescription = "Back",
+              tint = GoldMain,
+              modifier = Modifier.size(22.dp)
+            )
+          }
+
+          // Right Actions: Bookmark + Share
+          Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            IconButton(
+              onClick = onShareClick,
+              modifier = Modifier
+                .size(42.dp)
+                .border(1.2.dp, GlassBorderColor, CircleShape)
+                .background(GlassDarkBg, CircleShape)
+            ) {
+              Icon(
+                imageVector = Icons.Outlined.Share,
+                contentDescription = "Share",
+                tint = GoldMain,
+                modifier = Modifier.size(20.dp)
+              )
+            }
+
+            IconButton(
+              onClick = onBookmarkToggle,
+              modifier = Modifier
+                .size(42.dp)
+                .border(1.2.dp, GlassBorderColor, CircleShape)
+                .background(GlassDarkBg, CircleShape)
+            ) {
+              Icon(
+                imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
+                contentDescription = "Bookmark",
+                tint = if (isBookmarked) GoldMain else GoldMuted,
+                modifier = Modifier.size(22.dp)
+              )
+            }
+          }
+        }
+
+        // Bottom Hero Info Badges
+        Column(
+          modifier = Modifier
+            .align(Alignment.BottomStart)
+            .padding(horizontal = 18.dp, vertical = 14.dp)
+        ) {
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            GlassBadge(text = item.category)
+            GlassBadge(text = item.tag1)
+            if (item.tag2.isNotBlank()) {
+              GlassBadge(text = item.tag2)
+            }
+          }
+          Spacer(modifier = Modifier.height(8.dp))
+          Text(
+            text = item.title,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = GoldMain,
+            fontSize = 26.sp
+          )
+          Text(
+            text = item.subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = GoldLightAccent.copy(alpha = 0.9f),
+            fontSize = 13.5.sp
+          )
+        }
+      }
+    }
+
+    // 2. Quick Summary Cards
+    item {
+      Row(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        QuickStatCard(
+          title = "الاسم الملكي / الكارتوش",
+          value = articleData.cartoucheName,
+          modifier = Modifier.weight(1f)
+        )
+        QuickStatCard(
+          title = "الموقع الجغرافي",
+          value = articleData.location,
+          modifier = Modifier.weight(1f)
+        )
+      }
+    }
+
+    // 3. Archaeological Data Table (جدول التوثيق والبيانات الأثرية)
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 12.dp)
+      ) {
+        SectionTitle(title = "جدول التوثيق والبيانات الأثرية", icon = Icons.Outlined.TableChart)
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        // Glass Table Container
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+          border = BorderStroke(1.dp, GlassBorderColor),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Column(modifier = Modifier.padding(12.dp)) {
+            articleData.tableRows.forEachIndexed { index, row ->
+              TableRowItem(
+                field = row.first,
+                value = row.second,
+                isEven = index % 2 == 0
+              )
+              if (index < articleData.tableRows.size - 1) {
+                HorizontalDivider(
+                  color = GlassBorderSubtle,
+                  thickness = 0.8.dp,
+                  modifier = Modifier.padding(vertical = 4.dp)
+                )
+              }
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Markdown Formatted Sections (المقالة التاريخية والتحليل)
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 8.dp)
+      ) {
+        SectionTitle(title = "نظرة عامة وتاريخية", icon = Icons.Outlined.MenuBook)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+          border = BorderStroke(1.dp, GlassBorderSubtle),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+              text = articleData.overviewParagraph,
+              style = MaterialTheme.typography.bodyLarge,
+              color = Color(0xFFE2DDD3),
+              lineHeight = 26.sp,
+              fontSize = 14.5.sp
+            )
+          }
+        }
+      }
+    }
+
+    // 5. Hieroglyphic Quote / Royal Text Callout
+    if (articleData.hieroglyphicQuote.isNotBlank()) {
+      item {
+        Box(
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 18.dp, vertical = 10.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color(0x33DFB24C))
+            .border(1.2.dp, GoldMain, RoundedCornerShape(16.dp))
+            .padding(16.dp)
+        ) {
+          Column {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              EyeOfHorusIcon(modifier = Modifier.size(24.dp))
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "نقش فرعوني مقدس",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldMain
+              )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+              text = "« ${articleData.hieroglyphicQuote} »",
+              style = MaterialTheme.typography.titleMedium,
+              fontWeight = FontWeight.SemiBold,
+              color = GoldLightAccent,
+              lineHeight = 24.sp,
+              fontSize = 15.sp
+            )
+            if (articleData.quoteSource.isNotBlank()) {
+              Spacer(modifier = Modifier.height(6.dp))
+              Text(
+                text = "— ${articleData.quoteSource}",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMutedColor,
+                fontSize = 11.5.sp
+              )
+            }
+          }
+        }
+      }
+    }
+
+    // 6. Key Archaeological Highlights (Markdown Bullet Points)
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 10.dp)
+      ) {
+        SectionTitle(title = "أبرز الإنجازات والوقائع التاريخية", icon = Icons.Outlined.AutoAwesome)
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        articleData.highlights.forEach { highlight ->
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.Top
+          ) {
+            Box(
+              modifier = Modifier
+                .padding(top = 6.dp)
+                .size(8.dp)
+                .background(GoldMain, CircleShape)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+              text = highlight,
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFFDED8CD),
+              lineHeight = 22.sp,
+              fontSize = 13.5.sp
+            )
+          }
+        }
+      }
+    }
+
+    // 7. Academic References & Museum Documentation
+    item {
+      Column(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 12.dp)
+      ) {
+        SectionTitle(title = "المراجع والتوثيق العلمي", icon = Icons.Outlined.CollectionsBookmark)
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Card(
+          shape = RoundedCornerShape(14.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassDarkBg),
+          border = BorderStroke(1.dp, GlassBorderSubtle),
+          modifier = Modifier.fillMaxWidth()
+        ) {
+          Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+              text = "• السجل العام للآثار المصرية - وزارة السياحة والآثار\n• أبحاث المجلس الأعلى للآثار وهيئة المتحف المصري\n• دراسات البروفيسور سليم حسن (موسوعة مصر القديمة)",
+              style = MaterialTheme.typography.bodySmall,
+              color = TextMutedColor,
+              lineHeight = 22.sp,
+              fontSize = 12.sp
+            )
+          }
+        }
+      }
+    }
+
+    item {
+      Spacer(modifier = Modifier.height(30.dp))
+    }
+  }
+}
+
+@Composable
+fun QuickStatCard(title: String, value: String, modifier: Modifier = Modifier) {
+  Card(
+    shape = RoundedCornerShape(14.dp),
+    colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+    border = BorderStroke(1.dp, GlassBorderColor),
+    modifier = modifier
+  ) {
+    Column(modifier = Modifier.padding(12.dp)) {
+      Text(
+        text = title,
+        style = MaterialTheme.typography.labelSmall,
+        color = TextMutedColor,
+        fontSize = 11.sp
+      )
+      Spacer(modifier = Modifier.height(4.dp))
+      Text(
+        text = value,
+        style = MaterialTheme.typography.titleSmall,
+        fontWeight = FontWeight.Bold,
+        color = GoldMain,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
+        fontSize = 14.sp
+      )
+    }
+  }
+}
+
+@Composable
+fun SectionTitle(title: String, icon: ImageVector) {
+  Row(verticalAlignment = Alignment.CenterVertically) {
+    Icon(
+      imageVector = icon,
+      contentDescription = title,
+      tint = GoldMain,
+      modifier = Modifier.size(20.dp)
+    )
+    Spacer(modifier = Modifier.width(8.dp))
+    Text(
+      text = title,
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.Bold,
+      color = Color(0xFFF3D58C),
+      fontSize = 17.sp
+    )
+  }
+}
+
+@Composable
+fun TableRowItem(field: String, value: String, isEven: Boolean) {
+  Row(
+    modifier = Modifier
+      .fillMaxWidth()
+      .background(if (isEven) Color(0x221F222C) else Color.Transparent, RoundedCornerShape(8.dp))
+      .padding(horizontal = 10.dp, vertical = 8.dp),
+    verticalAlignment = Alignment.CenterVertically
+  ) {
+    Text(
+      text = field,
+      style = MaterialTheme.typography.bodySmall,
+      fontWeight = FontWeight.Bold,
+      color = GoldMain,
+      modifier = Modifier.weight(0.42f),
+      fontSize = 12.5.sp
+    )
+    Text(
+      text = value,
+      style = MaterialTheme.typography.bodyMedium,
+      color = Color(0xFFE5DFD4),
+      modifier = Modifier.weight(0.58f),
+      fontSize = 12.5.sp
+    )
+  }
+}
+
+// Share Intent function
+fun shareEgyptArticle(context: Context, item: EgyptItem) {
+  val article = getDetailedArticle(item.id)
+  val shareText = """
+    📜 ${item.title} - موسوعة مصر القديمة
+    ━━━━━━━━━━━━━━━━━━━━━━
+    🏷️ التصنيف: ${item.category} (${item.tag1})
+    ⏳ الحقبة: ${item.subtitle}
+    📍 الموقع: ${article.location}
+    
+    🏛️ نبذة تاريخية:
+    ${article.overviewParagraph}
+    
+    ✨ أبرز الإنجازات:
+    ${article.highlights.take(3).joinToString("\n") { "• $it" }}
+    
+    مشارك من تطبيق موسوعة مصر القديمة 🇪🇬
+  """.trimIndent()
+
+  val sendIntent = Intent().apply {
+    action = Intent.ACTION_SEND
+    putExtra(Intent.EXTRA_TEXT, shareText)
+    putExtra(Intent.EXTRA_TITLE, item.title)
+    type = "text/plain"
+  }
+  val shareIntent = Intent.createChooser(sendIntent, "مشاركة سجل ${item.title}")
+  context.startActivity(shareIntent)
+}
+
+// -------------------------------------------------------------
+// VIEW ALL SCREEN WITH CLEAN SEARCH & FILTERS
 // -------------------------------------------------------------
 @Composable
 fun ViewAllScreen(
   initialCategory: String,
   bookmarkedIds: Set<String>,
   onBookmarkToggle: (String) -> Unit,
+  onItemClick: (EgyptItem) -> Unit,
   onBack: () -> Unit
 ) {
+  val context = LocalContext.current
   var selectedCategory by remember { mutableStateOf(initialCategory) }
   var searchQuery by remember { mutableStateOf("") }
 
@@ -1324,7 +1741,9 @@ fun ViewAllScreen(
           ExactPharaohCard(
             item = item,
             isBookmarked = bookmarkedIds.contains(item.id),
-            onBookmarkToggle = { onBookmarkToggle(item.id) }
+            onBookmarkToggle = { onBookmarkToggle(item.id) },
+            onShareClick = { shareEgyptArticle(context, item) },
+            onClick = { onItemClick(item) }
           )
         }
       }
@@ -1335,12 +1754,17 @@ fun ViewAllScreen(
   }
 }
 
+// -------------------------------------------------------------
+// FAVORITES SCREEN
+// -------------------------------------------------------------
 @Composable
 fun FavoritesScreen(
   bookmarkedIds: Set<String>,
   onBookmarkToggle: (String) -> Unit,
+  onItemClick: (EgyptItem) -> Unit,
   onExploreClick: () -> Unit
 ) {
+  val context = LocalContext.current
   var selectedFilter by remember { mutableStateOf("الكل") }
   var searchQuery by remember { mutableStateOf("") }
 
@@ -1541,7 +1965,9 @@ fun FavoritesScreen(
           ExactPharaohCard(
             item = item,
             isBookmarked = true,
-            onBookmarkToggle = { onBookmarkToggle(item.id) }
+            onBookmarkToggle = { onBookmarkToggle(item.id) },
+            onShareClick = { shareEgyptArticle(context, item) },
+            onClick = { onItemClick(item) }
           )
         }
         item {
@@ -1552,71 +1978,344 @@ fun FavoritesScreen(
   }
 }
 
+// -------------------------------------------------------------
+// MAP, QUIZ & MORE SCREENS
+// -------------------------------------------------------------
 @Composable
-fun MapScreen() {
+fun MapScreen(onItemClick: (EgyptItem) -> Unit) {
+  val sites = remember { allEgyptItems.filter { it.category == "المواقع الأثرية" || it.category == "المجموعات الهرمية" } }
+
   Column(
     modifier = Modifier
       .fillMaxSize()
       .background(DarkPageBg)
-      .padding(20.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center
   ) {
-    Icon(
-      imageVector = Icons.Outlined.Explore,
-      contentDescription = "Map",
-      tint = GoldMain,
-      modifier = Modifier.size(56.dp)
-    )
-    Spacer(modifier = Modifier.height(14.dp))
-    Text(
-      text = "خريطة مصر القديمة",
-      style = MaterialTheme.typography.titleLarge,
-      fontWeight = FontWeight.Bold,
-      color = GoldMain
-    )
-    Spacer(modifier = Modifier.height(6.dp))
-    Text(
-      text = "استكشف توزيع الآثار والمعابد والمتاحف على امتداد وادي النيل",
-      style = MaterialTheme.typography.bodyMedium,
-      color = TextMutedColor,
-      textAlign = TextAlign.Center
-    )
+    Row(
+      modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = 18.dp, vertical = 14.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Box(
+        modifier = Modifier
+          .size(40.dp)
+          .border(1.dp, GlassBorderColor, CircleShape)
+          .background(Color(0x33DFB24C), CircleShape),
+        contentAlignment = Alignment.Center
+      ) {
+        Icon(
+          imageVector = Icons.Outlined.Explore,
+          contentDescription = "Map",
+          tint = GoldMain,
+          modifier = Modifier.size(22.dp)
+        )
+      }
+      Spacer(modifier = Modifier.width(12.dp))
+      Column {
+        Text(
+          text = "خريطة المعالم الأثرية",
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.Bold,
+          color = GoldMain,
+          fontSize = 20.sp
+        )
+        Text(
+          text = "المعالم والمواقع الجغرافية على طول النيل",
+          style = MaterialTheme.typography.bodySmall,
+          color = TextMutedColor,
+          fontSize = 11.5.sp
+        )
+      }
+    }
+
+    LazyColumn(
+      modifier = Modifier
+        .fillMaxSize()
+        .padding(horizontal = 18.dp)
+    ) {
+      item {
+        Card(
+          shape = RoundedCornerShape(18.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+          border = BorderStroke(1.dp, GlassBorderColor),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 8.dp)
+        ) {
+          Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+              Icon(
+                imageVector = Icons.Outlined.Navigation,
+                contentDescription = "Map Guide",
+                tint = GoldMain,
+                modifier = Modifier.size(22.dp)
+              )
+              Spacer(modifier = Modifier.width(8.dp))
+              Text(
+                text = "المسار الأثري لوادي النيل",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = GoldMain
+              )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+              text = "يمتد العمران المصري القديم من الدلتا شمالاً (منف والإسكندرية) مروراً بآثار الجيزة وسقارة حتى قلب الصعيد في طيبة (الأقصر) وأسوان وأبو سمبل جنوباً.",
+              style = MaterialTheme.typography.bodyMedium,
+              color = Color(0xFFDCD6CB),
+              fontSize = 13.sp,
+              lineHeight = 20.sp
+            )
+          }
+        }
+      }
+
+      item {
+        Spacer(modifier = Modifier.height(10.dp))
+        SectionTitle(title = "المعالم والمواقع الموثقة", icon = Icons.Outlined.Place)
+        Spacer(modifier = Modifier.height(8.dp))
+      }
+
+      items(sites, key = { it.id }) { item ->
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassDarkBg),
+          border = BorderStroke(1.dp, GlassBorderSubtle),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+            .clickable { onItemClick(item) }
+        ) {
+          Row(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+          ) {
+            Image(
+              painter = painterResource(id = item.imageRes),
+              contentDescription = item.title,
+              contentScale = ContentScale.Crop,
+              modifier = Modifier
+                .size(54.dp)
+                .clip(RoundedCornerShape(12.dp))
+            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+              Text(
+                text = item.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = GoldMain
+              )
+              Spacer(modifier = Modifier.height(2.dp))
+              Text(
+                text = "${item.tag1} • ${item.subtitle}",
+                style = MaterialTheme.typography.bodySmall,
+                color = TextMutedColor,
+                fontSize = 11.5.sp
+              )
+            }
+            Icon(
+              imageVector = Icons.Outlined.ChevronLeft,
+              contentDescription = "Open",
+              tint = GoldMain,
+              modifier = Modifier.size(20.dp)
+            )
+          }
+        }
+      }
+
+      item {
+        Spacer(modifier = Modifier.height(115.dp))
+      }
+    }
   }
 }
 
 @Composable
 fun QuizScreen() {
+  var selectedAnswer by remember { mutableStateOf<Int?>(null) }
+  var currentQuestionIndex by remember { mutableStateOf(0) }
+  var score by remember { mutableStateOf(0) }
+  var isSubmitted by remember { mutableStateOf(false) }
+
+  val questions = remember {
+    listOf(
+      QuizQuestion(
+        question = "من هو الملك الفرعوني صاحب أطول فترة حكم في تاريخ مصر القديمة (نحو 66 عاماً)؟",
+        options = listOf("تحتمس الثالث", "رمسيس الثاني", "أمنحتب الثالث", "توت عنخ آمون"),
+        correctIndex = 1
+      ),
+      QuizQuestion(
+        question = "ما هو المعلم الأثري الوحيد الباقي حتى اليوم من عجائب الدنيا السبع القديمة؟",
+        options = listOf("هرم زوسر", "الهرم الأكبر (خوفو)", "منارة الإسكندرية", "معبد أبو سمبل"),
+        correctIndex = 1
+      ),
+      QuizQuestion(
+        question = "في أي عام تم اكتشاف مقبرة الملك الذهبي توت عنخ آمون كاملة بوادي الملوك؟",
+        options = listOf("1898 م", "1905 م", "1922 م", "1954 م"),
+        correctIndex = 2
+      )
+    )
+  }
+
+  val q = questions[currentQuestionIndex]
+
   Column(
     modifier = Modifier
       .fillMaxSize()
       .background(DarkPageBg)
-      .padding(20.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center
+      .padding(18.dp)
   ) {
-    Icon(
-      imageVector = Icons.Outlined.Assignment,
-      contentDescription = "Quiz",
-      tint = GoldMain,
-      modifier = Modifier.size(56.dp)
-    )
-    Spacer(modifier = Modifier.height(14.dp))
-    Text(
-      text = "اختبارات علم المصريات",
-      style = MaterialTheme.typography.titleLarge,
-      fontWeight = FontWeight.Bold,
-      color = GoldMain
-    )
-    Spacer(modifier = Modifier.height(6.dp))
-    Text(
-      text = "اختبر معلوماتك عن الفراعنة والأسرات وتاريخ مصر القديم",
-      style = MaterialTheme.typography.bodyMedium,
-      color = TextMutedColor,
-      textAlign = TextAlign.Center
-    )
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Box(
+        modifier = Modifier
+          .size(40.dp)
+          .border(1.dp, GlassBorderColor, CircleShape)
+          .background(Color(0x33DFB24C), CircleShape),
+        contentAlignment = Alignment.Center
+      ) {
+        Icon(
+          imageVector = Icons.Outlined.Assignment,
+          contentDescription = "Quiz",
+          tint = GoldMain,
+          modifier = Modifier.size(22.dp)
+        )
+      }
+      Spacer(modifier = Modifier.width(12.dp))
+      Column {
+        Text(
+          text = "اختبارات الحضارة المصرية",
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.Bold,
+          color = GoldMain,
+          fontSize = 20.sp
+        )
+        Text(
+          text = "السؤال ${currentQuestionIndex + 1} من ${questions.size}",
+          style = MaterialTheme.typography.bodySmall,
+          color = TextMutedColor,
+          fontSize = 11.5.sp
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(18.dp))
+
+    Card(
+      shape = RoundedCornerShape(18.dp),
+      colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+      border = BorderStroke(1.dp, GlassBorderColor),
+      modifier = Modifier.fillMaxWidth()
+    ) {
+      Column(modifier = Modifier.padding(18.dp)) {
+        Text(
+          text = q.question,
+          style = MaterialTheme.typography.titleMedium,
+          fontWeight = FontWeight.Bold,
+          color = Color(0xFFF3D58C),
+          fontSize = 16.sp,
+          lineHeight = 24.sp
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        q.options.forEachIndexed { index, option ->
+          val isCurrentChoice = selectedAnswer == index
+          val isCorrect = index == q.correctIndex
+          val borderColor = when {
+            isSubmitted && isCorrect -> Color(0xFF4CAF50)
+            isSubmitted && isCurrentChoice && !isCorrect -> Color(0xFFE53935)
+            isCurrentChoice -> GoldMain
+            else -> GlassBorderSubtle
+          }
+          val bgColor = when {
+            isSubmitted && isCorrect -> Color(0x334CAF50)
+            isSubmitted && isCurrentChoice && !isCorrect -> Color(0x33E53935)
+            isCurrentChoice -> Color(0x33DFB24C)
+            else -> GlassDarkBg
+          }
+
+          Box(
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(vertical = 5.dp)
+              .clip(RoundedCornerShape(12.dp))
+              .background(bgColor)
+              .border(1.2.dp, borderColor, RoundedCornerShape(12.dp))
+              .clickable(enabled = !isSubmitted) { selectedAnswer = index }
+              .padding(horizontal = 14.dp, vertical = 12.dp)
+          ) {
+            Text(
+              text = option,
+              style = MaterialTheme.typography.bodyMedium,
+              color = if (isCurrentChoice) GoldMain else Color(0xFFE0DBD1),
+              fontWeight = if (isCurrentChoice) FontWeight.Bold else FontWeight.Normal,
+              fontSize = 14.sp
+            )
+          }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        if (!isSubmitted) {
+          Button(
+            onClick = {
+              if (selectedAnswer != null) {
+                isSubmitted = true
+                if (selectedAnswer == q.correctIndex) {
+                  score++
+                }
+              }
+            },
+            enabled = selectedAnswer != null,
+            colors = ButtonDefaults.buttonColors(
+              containerColor = GoldMain,
+              contentColor = DarkPageBg
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text("تأكيد الإجابة", fontWeight = FontWeight.Bold)
+          }
+        } else {
+          Button(
+            onClick = {
+              if (currentQuestionIndex < questions.size - 1) {
+                currentQuestionIndex++
+                selectedAnswer = null
+                isSubmitted = false
+              } else {
+                currentQuestionIndex = 0
+                selectedAnswer = null
+                isSubmitted = false
+                score = 0
+              }
+            },
+            colors = ButtonDefaults.buttonColors(
+              containerColor = GoldMain,
+              contentColor = DarkPageBg
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
+          ) {
+            Text(
+              if (currentQuestionIndex < questions.size - 1) "السؤال التالي" else "إعادة الاختبار",
+              fontWeight = FontWeight.Bold
+            )
+          }
+        }
+      }
+    }
   }
 }
+
+data class QuizQuestion(
+  val question: String,
+  val options: List<String>,
+  val correctIndex: Int
+)
 
 @Composable
 fun MoreScreen() {
@@ -1624,29 +2323,177 @@ fun MoreScreen() {
     modifier = Modifier
       .fillMaxSize()
       .background(DarkPageBg)
-      .padding(20.dp),
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center
+      .padding(18.dp)
   ) {
-    Icon(
-      imageVector = Icons.Outlined.MoreHoriz,
-      contentDescription = "More",
-      tint = GoldMain,
-      modifier = Modifier.size(56.dp)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+      Box(
+        modifier = Modifier
+          .size(40.dp)
+          .border(1.dp, GlassBorderColor, CircleShape)
+          .background(Color(0x33DFB24C), CircleShape),
+        contentAlignment = Alignment.Center
+      ) {
+        Icon(
+          imageVector = Icons.Outlined.MoreHoriz,
+          contentDescription = "More",
+          tint = GoldMain,
+          modifier = Modifier.size(22.dp)
+        )
+      }
+      Spacer(modifier = Modifier.width(12.dp))
+      Column {
+        Text(
+          text = "المزيد من المصادر والمراجع",
+          style = MaterialTheme.typography.titleLarge,
+          fontWeight = FontWeight.Bold,
+          color = GoldMain,
+          fontSize = 20.sp
+        )
+        Text(
+          text = "المكتبة العلمية الرقمية لعلم المصريات",
+          style = MaterialTheme.typography.bodySmall,
+          color = TextMutedColor,
+          fontSize = 11.5.sp
+        )
+      }
+    }
+
+    Spacer(modifier = Modifier.height(18.dp))
+
+    val sources = listOf(
+      "موسوعة مصر القديمة - د. سليم حسن (18 مجلداً)" to "التأريخ الشامل للحياة السياسية والدينية والاجتماعية",
+      "قواعد اللغة المصرية القديمة (الهيروغليفية) - جاردنر" to "المرجع العالمي لفك وفهم النقوش الجدارية",
+      "أطلس الآثار والمقابر الملكية بطيبة" to "التوثيق المعماري لوادي الملوك والكرنك والأقصر",
+      "دليل المتاحف الكبرى العالمية للآثار المصرية" to "المتحف المصري الكبير، متحف اللوفر، المتحف البريطاني"
     )
-    Spacer(modifier = Modifier.height(14.dp))
-    Text(
-      text = "المزيد من المصادر",
-      style = MaterialTheme.typography.titleLarge,
-      fontWeight = FontWeight.Bold,
-      color = GoldMain
+
+    LazyColumn {
+      items(sources) { (title, desc) ->
+        Card(
+          shape = RoundedCornerShape(16.dp),
+          colors = CardDefaults.cardColors(containerColor = GlassCardBg),
+          border = BorderStroke(1.dp, GlassBorderColor),
+          modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp)
+        ) {
+          Column(modifier = Modifier.padding(14.dp)) {
+            Text(
+              text = title,
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Bold,
+              color = GoldMain
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+              text = desc,
+              style = MaterialTheme.typography.bodySmall,
+              color = Color(0xFFC7C1B5),
+              fontSize = 12.sp
+            )
+          }
+        }
+      }
+    }
+  }
+}
+
+// -------------------------------------------------------------
+// DETAILED ARCHAEOLOGICAL ARTICLE DATA MODEL
+// -------------------------------------------------------------
+data class ArticleDetailData(
+  val cartoucheName: String,
+  val location: String,
+  val tableRows: List<Pair<String, String>>,
+  val overviewParagraph: String,
+  val hieroglyphicQuote: String,
+  val quoteSource: String,
+  val highlights: List<String>
+)
+
+fun getDetailedArticle(itemId: String): ArticleDetailData {
+  return when (itemId) {
+    "king_ramses2" -> ArticleDetailData(
+      cartoucheName = "أوسر ماعت رع ستب إن رع",
+      location = "طيبة / بر-رعمسيس / أبو سمبل",
+      tableRows = listOf(
+        "الاسم الكامل" to "رمسيس الثاني (رعمسيس)",
+        "الأسرة الحاكمة" to "الأسرة التاسعة عشرة",
+        "العصر التاريخي" to "المملكة الحديثة (العصر الذهبي)",
+        "فترة الحكم" to "1279 – 1213 ق.م (66 عاماً)",
+        "المقبرة الملكية" to "KV7 - وادي الملوك",
+        "أهم المعارك" to "معركة قادش ضد الحيثيين (1274 ق.م)",
+        "أعظم المنشآت" to "معبد أبو سمبل، الرمسيوم، صالة أعمدة الكرنك"
+      ),
+      overviewParagraph = "يُعد رمسيس الثاني، الملقب بـ «رمسيس الأكبر»، ثالث ملوك الأسرة التاسعة عشرة وأحد أعظم وأقوى حكام الإمبراطورية المصرية على مر العصور. قاد عدة حملات عسكرية لتأمين حدود الإمبراطورية في بلاد الشام والنوبة، وشهد عهده أول معاهدة سلام موثقة في تاريخ البشرية مع الملك الحيثي خاتوشيلي الثالث. تميز عهده بنهضة معمارية غير مسبوقة عمت أرجاء مصر من الشمال إلى الجنوب.",
+      hieroglyphicQuote = "أنا سيد الأرضين، حامي مصر وقاهر الأعداء، بنى لي الخلود في صخر الجبال",
+      quoteSource = "نقوش واجهة معبد أبو سمبل الكبير",
+      highlights = listOf(
+        "توقيع أول معاهدة سلام مكتوبة في التاريخ الإنساني مع الحيثيين عام 1259 ق.م.",
+        "تشييد معبدي أبو سمبل بنحت الجبل الصخري بعبقرية فلكية تُحقق تعامد الشمس مرتين سنوياً.",
+        "توسعة صالة الأعمدة الكبرى بمعبد الكرنك وبناء معبد الرمسيوم الجنائزي الفخم بالأقصر.",
+        "تأسيس عاصمة جديدة في الدلتا «بر-رعمسيس» لتعزيز التجارة والسيطرة الاستراتيجية."
+      )
     )
-    Spacer(modifier = Modifier.height(6.dp))
-    Text(
-      text = "المكتبة العلمية والمراجع المعتمدة لعلم الآثار المصرية",
-      style = MaterialTheme.typography.bodyMedium,
-      color = TextMutedColor,
-      textAlign = TextAlign.Center
+    "pyr_khufu" -> ArticleDetailData(
+      cartoucheName = "خنوم خوفوي (خنوم يحميني)",
+      location = "هضبة الجيزة - محافظة الجيزة",
+      tableRows = listOf(
+        "اسم الأثر" to "الهرم الأكبر (أفق خوفو - أخت خوفو)",
+        "الملك الباني" to "خوفو (ثاني ملوك الأسرة الرابعة)",
+        "العصر التاريخي" to "المملكة القديمة (عصر بناة الأهرام)",
+        "تاريخ التشييد" to "نحو 2560 ق.م",
+        "الارتفاع الأصلي" to "146.6 متراً (الحالي 138.8 م)",
+        "عدد الأحجار المقدر" to "نحو 2.3 مليون كتلة حجرية جيرية وجرانيتية",
+        "المهندس المعماري" to "الوزير حم إيونو (Hemiunu)"
+      ),
+      overviewParagraph = "الهرم الأكبر بالجيزة هو أضخم بناء حجري شيدته يد الإنسان في التاريخ القديم، والعجيبة الوحيدة الباقية من عجائب الدنيا السبع القديمة. بُني ليكون مقبرة للملك خوفو على مدار أكثر من عشرين عاماً. يُجسد الهرم ذروة التطور الهندسي والفلكي في مصر القديمة، حيث تتطابق أضلاعه الأربعة بدقة متناهية مع الاتجاهات الأصلية الأربعة للبوصلة.",
+      hieroglyphicQuote = "أفق خوفو مشرق إلى الأبد، منارة الخلود التي لا تفنى",
+      quoteSource = "نصوص الأهرام ونقوش مقابر كبار رجال الدولة بالجيزة",
+      highlights = listOf(
+        "تطابق الاتجاهات الأربعة للهرم بدقة فلكية تقل عن 0.05 درجة من الشمال الحقيقي.",
+        "استخدام كتل جرانيتية ضخمة تزن الواحدة حتى 50 طناً في سقف حجرة الملك.",
+        "وجود نظام تهوية وقنوات داخلية مصممة بمحاذاة مجموعات نجمية مقدسة كحزام أوريون وسيريوس.",
+        "بناء مراكب الشمس الخشبية المكتشفة سليمة بجوار الهرم لدعم رحلة الملك السماوية."
+      )
+    )
+    "art_mask" -> ArticleDetailData(
+      cartoucheName = "نب خبرو رع (توت عنخ آمون)",
+      location = "المتحف المصري الكبير - الجيزة",
+      tableRows = listOf(
+        "اسم القطعة" to "القناع الذهبي للملك توت عنخ آمون",
+        "تاريخ الصنع" to "1323 ق.م (الأسرة الثامنة عشرة)",
+        "المادة المصنوع منها" to "ذهب خالص عيار 22، لازورد، عقيق، فيروز، زجاج ملون",
+        "الوزن الإجمالي" to "10.23 كيلوغراماً من الذهب الخالص",
+        "الارتفاع" to "54 سنتيمتراً",
+        "تاريخ الاكتشاف" to "4 نوفمبر 1922 م (هوارد كارتر)",
+        "الموقع الأصلي" to "المقبرة KV62 - وادي الملوك"
+      ),
+      overviewParagraph = "القناع الجنائزي الذهبي للملك توت عنخ آمون هو الرمز البصري الأشهر عالمياً للحضارة المصرية القديمة وروعة الصياغة الفنية الفرعونية. عُثر عليه مستقراً فوق رأس وكتفي مومياء الملك الشاب داخل تابوته الذهبي الخالص. يُمثل القناع ملامح الملك الشاب مع لحية أوزيرية مستعارة، وعلى الجبهة شارات الملكية المقدسة: أنثى النسر نخبت وصل الكوبرا واجيت.",
+      hieroglyphicQuote = "عينك اليمنى هي مركب المساء، وعينك اليسرى هي مركب الصباح، وجمالك يملأ القلوب نوراً",
+      quoteSource = "نصوص كتاب الموتى المنقوشة على ظهر القناع الجنائزي",
+      highlights = listOf(
+        "صُنع من طبقتين من الذهب فائق النقاوة مرصعاً بالأحجار الكريمة الطبيعية النادرة.",
+        "ظهره منقوش بالكامل بنصوص تعاويذ سحرية من الفصل 151 من كتاب الموتى لحماية حواس الملك.",
+        "تم حفظ القناع كاملاً دون أدنى تلف لأكثر من 3300 عام داخل المقبرة الملكية المحكمة."
+      )
+    )
+    else -> ArticleDetailData(
+      cartoucheName = "سجل ملكي موثق",
+      location = "جمهورية مصر العربية",
+      tableRows = listOf(
+        "التصنيف الأثري" to "أثر مصري خالد",
+        "الحقبة التاريخية" to "مصر القديمة عبر العصور",
+        "المصدر التوثيقي" to "هيئة الآثار والمتاحف المصرية",
+        "الحالة الأثرية" to "مسجل وموثق رسمياً"
+      ),
+      overviewParagraph = "يُمثل هذا الأثر جزءاً أصيلاً من التراث الإنساني الفريد للحضارة المصرية القديمة، حيث وثق المصريون القدماء عقائدهم الدينية، وإنجازاتهم المعمارية، وعلومهم المتقدمة في الفلك والهندسة على جدران المعابد والبرديات والمقتنيات الأثرية الخالدة.",
+      hieroglyphicQuote = "عاشت مصر خالدة ما دام النيل يجري وما دامت الشمس تشرق في سمائها",
+      quoteSource = "نقوش البرديات المصرية القديمة",
+      highlights = listOf(
+        "توثيق علمي شامل لكافة المقتنيات والنقوش المرتبطة بهذا المعلم الأثري.",
+        "حفظ دقيق لجميع الاكتشافات والأبحاث الأثرية المعتمدة من علماء المصريات."
+      )
     )
   }
 }
@@ -1693,11 +2540,11 @@ data class EgyptItem(
   val tag2: String,
   val subtitle: String,
   val imageRes: Int,
-  val subtitleIcon: ImageVector = Icons.Outlined.DateRange
+  val subtitleIcon: ImageVector = Icons.Outlined.CalendarToday
 )
 
 val allEgyptItems = listOf(
-  // 1. الملوك (Kings exactly from Screenshot)
+  // 1. الملوك (Kings)
   EgyptItem(
     id = "king_ramses2",
     category = "الملوك",
