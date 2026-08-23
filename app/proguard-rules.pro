@@ -49,3 +49,16 @@
 -keep class * extends androidx.room.RoomDatabase
 -keep @androidx.room.Entity class *
 -dontwarn androidx.room.paging.**
+
+# Keep Compose Runtime and Foundation
+-keep class androidx.compose.** { *; }
+-dontwarn androidx.compose.**
+
+# Keep Kotlin Coroutines
+-keepnames class kotlinx.coroutines.** { *; }
+-keepclassmembers class kotlinx.coroutines.** { *; }
+
+# Keep App Models and Data Classes
+-keep class com.example.** { *; }
+-keepclassmembers class com.example.** { *; }
+

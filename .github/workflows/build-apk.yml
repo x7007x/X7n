@@ -40,15 +40,18 @@ jobs:
             base64 -d debug.keystore.base64 > debug.keystore
           fi
 
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
+        uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: wrapper
+          gradle-version: "9.3.1"
           cache-read-only: false
 
       - name: Fast Build Debug APK
         run: |
-          ./gradlew assembleDebug \
+          gradle assembleDebug \
             --no-daemon \
             --parallel \
             --build-cache \
