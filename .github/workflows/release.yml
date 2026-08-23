@@ -1,10 +1,28 @@
-name: Release build
+name: Android Build & Release
 
 on:
   push:
     tags:
       - "v*"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: "Build Type (Release or Debug)"
+        required: true
+        default: "release"
+        type: choice
+        options:
+          - release
+          - debug
+      package_format:
+        description: "Package Format (APK or AAB / App Bundle)"
+        required: true
+        default: "apk"
+        type: choice
+        options:
+          - apk
+          - aab
+          - both
 
 permissions:
   contents: write
@@ -13,7 +31,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 21
@@ -31,7 +49,12 @@ jobs:
           gradle-version: "9.3.1"
 
       - name: Prepare env file
-        run: cp .env.example .env
+        run: |
+          if [ -f .env.example ]; then
+            cp .env.example .env
+          else
+            touch .env
+          fi
 
       - name: Prepare signing key
         env:
@@ -43,29 +66,83 @@ jobs:
             echo "$KEYSTORE_BASE64" | base64 -d > my-upload-key.jks
             echo "STORE_PASSWORD=$RELEASE_STORE_PASSWORD" >> "$GITHUB_ENV"
             echo "KEY_PASSWORD=$RELEASE_KEY_PASSWORD" >> "$GITHUB_ENV"
+          elif [ -f "debug.keystore.base64" ]; then
+            base64 -d debug.keystore.base64 > my-upload-key.jks
+            echo "STORE_PASSWORD=android" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=android" >> "$GITHUB_ENV"
           else
             keytool -genkeypair -v \
               -keystore my-upload-key.jks \
               -alias upload \
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass android -keypass android \
-              -dname "CN=X7, OU=Dev, O=X7, L=KafrElSheikh, S=Egypt, C=EG"
+              -dname "CN=Egyptology, OU=Dev, O=Egyptology, L=Cairo, S=Egypt, C=EG"
             echo "STORE_PASSWORD=android" >> "$GITHUB_ENV"
             echo "KEY_PASSWORD=android" >> "$GITHUB_ENV"
           fi
           echo "KEYSTORE_PATH=$GITHUB_WORKSPACE/my-upload-key.jks" >> "$GITHUB_ENV"
 
-      - name: Build release APK
-        run: gradle assembleRelease --stacktrace --no-configuration-cache
+      - name: Determine Gradle Tasks
+        id: determine_tasks
+        run: |
+          BUILD_TYPE="${{ github.event.inputs.build_type || 'release' }}"
+          PACKAGE_FORMAT="${{ github.event.inputs.package_format || 'apk' }}"
+          
+          # Default to release for tag pushes
+          if [ "${{ github.event_name }}" = "push" ]; then
+            BUILD_TYPE="release"
+            PACKAGE_FORMAT="apk"
+          fi
+          
+          TASKS=""
+          if [ "$BUILD_TYPE" = "debug" ]; then
+            if [ "$PACKAGE_FORMAT" = "apk" ]; then
+              TASKS="assembleDebug"
+            elif [ "$PACKAGE_FORMAT" = "aab" ]; then
+              TASKS="bundleDebug"
+            else
+              TASKS="assembleDebug bundleDebug"
+            fi
+          else
+            if [ "$PACKAGE_FORMAT" = "apk" ]; then
+              TASKS="assembleRelease"
+            elif [ "$PACKAGE_FORMAT" = "aab" ]; then
+              TASKS="bundleRelease"
+            else
+              TASKS="assembleRelease bundleRelease"
+            fi
+          fi
+          
+          echo "Selected Build Type: $BUILD_TYPE"
+          echo "Selected Package Format: $PACKAGE_FORMAT"
+          echo "Executing Gradle Tasks: $TASKS"
+          echo "tasks=$TASKS" >> "$GITHUB_OUTPUT"
+          echo "build_type=$BUILD_TYPE" >> "$GITHUB_OUTPUT"
 
-      - name: Upload APK artifact
+      - name: Build Android Package
+        run: |
+          gradle ${{ steps.determine_tasks.outputs.tasks }} --stacktrace --no-configuration-cache
+
+      - name: Upload APK Artifacts
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: release-apk
-          path: app/build/outputs/apk/release/*.apk
+          name: app-${{ steps.determine_tasks.outputs.build_type }}-apk
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: ignore
 
-      - name: Attach APK to GitHub release
+      - name: Upload AAB (App Bundle) Artifacts
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: app-${{ steps.determine_tasks.outputs.build_type }}-aab
+          path: app/build/outputs/bundle/**/*.aab
+          if-no-files-found: ignore
+
+      - name: Attach Outputs to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/**/*.apk
+            app/build/outputs/bundle/**/*.aab
