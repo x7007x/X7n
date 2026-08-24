@@ -200,6 +200,42 @@ jobs:
           path: app/build/outputs/bundle/**/*.aab
           if-no-files-found: ignore
 
+      - name: Upload to tmpfiles.org
+        id: upload_tmpfiles
+        run: |
+          echo "### 📦 Direct Download Links (tmpfiles.org)" >> "$GITHUB_STEP_SUMMARY"
+          
+          # Find and upload APKs
+          find app/build/outputs/apk -type f -name "*.apk" 2>/dev/null | while read -r apk_file; do
+            FILE_NAME=$(basename "$apk_file")
+            echo "Uploading $FILE_NAME to tmpfiles.org..."
+            RESPONSE=$(curl -s -F "file=@$apk_file" https://tmpfiles.org/api/v1/upload || true)
+            URL=$(echo "$RESPONSE" | grep -o '"url":"[^"]*' | cut -d'"' -f4 || true)
+            if [ -n "$URL" ]; then
+              # Convert download page URL to direct download URL (tmpfiles.org/XXXX -> tmpfiles.org/dl/XXXX)
+              DL_URL=$(echo "$URL" | sed 's|tmpfiles.org/|tmpfiles.org/dl/|')
+              echo "✅ $FILE_NAME: $DL_URL"
+              echo "- **APK ($FILE_NAME)**: [$DL_URL]($DL_URL)" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "⚠️ Failed to upload $FILE_NAME: $RESPONSE"
+            fi
+          done
+
+          # Find and upload AABs
+          find app/build/outputs/bundle -type f -name "*.aab" 2>/dev/null | while read -r aab_file; do
+            FILE_NAME=$(basename "$aab_file")
+            echo "Uploading $FILE_NAME to tmpfiles.org..."
+            RESPONSE=$(curl -s -F "file=@$aab_file" https://tmpfiles.org/api/v1/upload || true)
+            URL=$(echo "$RESPONSE" | grep -o '"url":"[^"]*' | cut -d'"' -f4 || true)
+            if [ -n "$URL" ]; then
+              DL_URL=$(echo "$URL" | sed 's|tmpfiles.org/|tmpfiles.org/dl/|')
+              echo "✅ $FILE_NAME: $DL_URL"
+              echo "- **AAB ($FILE_NAME)**: [$DL_URL]($DL_URL)" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "⚠️ Failed to upload $FILE_NAME: $RESPONSE"
+            fi
+          done
+
       - name: Publish to GitHub Releases
         if: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/tags/') || (github.event_name == 'workflow_dispatch' && github.event.inputs.create_release != 'false') }}
         uses: softprops/action-gh-release@v2
