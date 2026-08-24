@@ -17,25 +17,44 @@ android {
     applicationId = "com.aistudio.ancientegypt.xbnmqz"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = (project.findProperty("versionCode") as? String)?.toIntOrNull()
+      ?: System.getenv("APP_VERSION_CODE")?.toIntOrNull()
+      ?: 1
+    versionName = (project.findProperty("versionName") as? String)
+      ?: System.getenv("APP_VERSION_NAME")
+      ?: "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
   }
 
   signingConfigs {
     create("release") {
-      val keystorePath = System.getenv("KEYSTORE_PATH") ?: "${rootDir}/my-upload-key.jks"
-      storeFile = file(keystorePath)
-      storePassword = System.getenv("STORE_PASSWORD")
-      keyAlias = "upload"
-      keyPassword = System.getenv("KEY_PASSWORD")
+      val envKeystore = System.getenv("KEYSTORE_PATH")
+      val keyFile = when {
+        envKeystore != null && file(envKeystore).exists() -> file(envKeystore)
+        file("${rootDir}/my-upload-key.jks").exists() -> file("${rootDir}/my-upload-key.jks")
+        file("${rootDir}/debug.keystore").exists() -> file("${rootDir}/debug.keystore")
+        else -> null
+      }
+      if (keyFile != null) {
+        storeFile = keyFile
+        storePassword = System.getenv("STORE_PASSWORD") ?: "android"
+        keyAlias = if (keyFile.name.contains("debug")) "androiddebugkey" else (System.getenv("KEY_ALIAS") ?: "upload")
+        keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+      }
     }
     create("debugConfig") {
-      storeFile = file("${rootDir}/debug.keystore")
-      storePassword = "android"
-      keyAlias = "androiddebugkey"
-      keyPassword = "android"
+      val debugKeyFile = when {
+        file("${rootDir}/debug.keystore").exists() -> file("${rootDir}/debug.keystore")
+        file("${rootDir}/my-upload-key.jks").exists() -> file("${rootDir}/my-upload-key.jks")
+        else -> null
+      }
+      if (debugKeyFile != null) {
+        storeFile = debugKeyFile
+        storePassword = "android"
+        keyAlias = if (debugKeyFile.name.contains("debug")) "androiddebugkey" else "upload"
+        keyPassword = "android"
+      }
     }
   }
 
@@ -45,9 +64,24 @@ android {
       isMinifyEnabled = false
       isShrinkResources = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-      signingConfig = signingConfigs.getByName("release")
+      val relConfig = signingConfigs.getByName("release")
+      val dbgConfig = signingConfigs.getByName("debugConfig")
+      if (relConfig.storeFile?.exists() == true) {
+        signingConfig = relConfig
+      } else if (dbgConfig.storeFile?.exists() == true) {
+        signingConfig = dbgConfig
+      } else {
+        signingConfig = signingConfigs.getByName("debug")
+      }
     }
-    debug { signingConfig = signingConfigs.getByName("debugConfig") }
+    debug {
+      val dbgConfig = signingConfigs.getByName("debugConfig")
+      if (dbgConfig.storeFile?.exists() == true) {
+        signingConfig = dbgConfig
+      } else {
+        signingConfig = signingConfigs.getByName("debug")
+      }
+    }
   }
   packaging {
     resources {
