@@ -1,18 +1,9 @@
-*.iml
-.gradle
-.kotlin
-/local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+# OS / IDE
 .DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
-local.properties
-.env
-debug.keystore
+.idea/
+
+# Gradle
+.gradle
+
+# Note: android-app/debug.keystore is generated automatically by
+# android-app/app/build.gradle.kts on first build - never commit it.

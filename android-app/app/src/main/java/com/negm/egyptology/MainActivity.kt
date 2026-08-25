@@ -1,4 +1,4 @@
-package com.example
+package com.negm.egyptology
 
 import android.content.Context
 import android.content.Intent
@@ -7,11 +7,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -44,8 +57,11 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -53,7 +69,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.ui.theme.MyApplicationTheme
+import com.negm.egyptology.ui.theme.MyApplicationTheme
 
 // Gold & Glass Palette matching Egyptian Royal aesthetics
 val GoldMain = Color(0xFFDFB24C)
@@ -109,77 +125,119 @@ class MainActivity : ComponentActivity() {
             },
             containerColor = DarkPageBg
           ) { innerPadding ->
-            Box(
+            // Stable key for animated navigation between screens
+            val navKey = when {
+              selectedArticleItem != null -> "detail"
+              isViewingAll -> "view_all"
+              else -> currentNavTab
+            }
+
+            val tabOrder = listOf("خريطة", "المفضلة", "الرئيسية", "الاختبارات", "المزيد")
+
+            AnimatedContent(
+              targetState = navKey,
               modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .background(DarkPageBg)
-            ) {
-              when {
-                selectedArticleItem != null -> {
-                  ArticleDetailScreen(
-                    item = selectedArticleItem!!,
-                    isBookmarked = bookmarkedIds.contains(selectedArticleItem!!.id),
-                    onBookmarkToggle = {
-                      val id = selectedArticleItem!!.id
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
-                    },
-                    onShareClick = {
-                      shareEgyptArticle(context, selectedArticleItem!!)
-                    },
-                    onBack = { selectedArticleItem = null }
-                  )
+                .padding(innerPadding),
+              transitionSpec = {
+                if (targetState == "detail") {
+                  // Detail screen slides up from the bottom edge
+                  slideInVertically(
+                    initialOffsetY = { it / 8 },
+                    animationSpec = tween(280, easing = FastOutSlowInEasing)
+                  ) + fadeIn(tween(240)) togetherWith
+                    fadeOut(tween(160))
+                } else {
+                  // Tabs cross-fade with a gentle RTL horizontal slide
+                  fun orderOf(key: String) =
+                    tabOrder.indexOf(if (key == "view_all") "الرئيسية" else key).let { if (it < 0) 0 else it }
+                  val direction = if (orderOf(targetState) >= orderOf(initialState)) -1 else 1
+                  (
+                    slideInHorizontally(
+                      initialOffsetX = { direction * it / 14 },
+                      animationSpec = tween(260, easing = FastOutSlowInEasing)
+                    ) + fadeIn(tween(240))
+                    ) togetherWith (
+                    slideOutHorizontally(
+                      targetOffsetX = { -direction * it / 14 },
+                      animationSpec = tween(220)
+                    ) + fadeOut(tween(180))
+                    )
                 }
-                isViewingAll -> {
-                  ViewAllScreen(
-                    initialCategory = viewAllCategory,
-                    bookmarkedIds = bookmarkedIds,
-                    onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
-                    },
-                    onItemClick = { item ->
-                      selectedArticleItem = item
-                    },
-                    onBack = { isViewingAll = false }
-                  )
-                }
-                currentNavTab == "الرئيسية" -> {
-                  HomeScreen(
-                    bookmarkedIds = bookmarkedIds,
-                    onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
-                    },
-                    onItemClick = { item ->
-                      selectedArticleItem = item
-                    },
-                    onViewAllClick = { category ->
-                      viewAllCategory = category
-                      isViewingAll = true
-                    }
-                  )
-                }
-                currentNavTab == "المفضلة" -> {
-                  FavoritesScreen(
-                    bookmarkedIds = bookmarkedIds,
-                    onBookmarkToggle = { id ->
-                      bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
-                    },
-                    onItemClick = { item ->
-                      selectedArticleItem = item
-                    },
-                    onExploreClick = {
-                      currentNavTab = "الرئيسية"
-                    }
-                  )
-                }
-                currentNavTab == "خريطة" -> {
-                  MapScreen(onItemClick = { selectedArticleItem = it })
-                }
-                currentNavTab == "الاختبارات" -> {
-                  QuizScreen()
-                }
-                currentNavTab == "المزيد" -> {
-                  MoreScreen()
+              },
+              label = "nav_screen_transition"
+            ) { key ->
+              Box(
+                modifier = Modifier
+                  .fillMaxSize()
+                  .background(DarkPageBg)
+              ) {
+                when {
+                  key == "detail" && selectedArticleItem != null -> {
+                    ArticleDetailScreen(
+                      item = selectedArticleItem!!,
+                      isBookmarked = bookmarkedIds.contains(selectedArticleItem!!.id),
+                      onBookmarkToggle = {
+                        val id = selectedArticleItem!!.id
+                        bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                      },
+                      onShareClick = {
+                        shareEgyptArticle(context, selectedArticleItem!!)
+                      },
+                      onBack = { selectedArticleItem = null }
+                    )
+                  }
+                  key == "view_all" -> {
+                    ViewAllScreen(
+                      initialCategory = viewAllCategory,
+                      bookmarkedIds = bookmarkedIds,
+                      onBookmarkToggle = { id ->
+                        bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                      },
+                      onItemClick = { item ->
+                        selectedArticleItem = item
+                      },
+                      onBack = { isViewingAll = false }
+                    )
+                  }
+                  key == "الرئيسية" -> {
+                    HomeScreen(
+                      bookmarkedIds = bookmarkedIds,
+                      onBookmarkToggle = { id ->
+                        bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                      },
+                      onItemClick = { item ->
+                        selectedArticleItem = item
+                      },
+                      onViewAllClick = { category ->
+                        viewAllCategory = category
+                        isViewingAll = true
+                      }
+                    )
+                  }
+                  key == "المفضلة" -> {
+                    FavoritesScreen(
+                      bookmarkedIds = bookmarkedIds,
+                      onBookmarkToggle = { id ->
+                        bookmarkedIds = if (bookmarkedIds.contains(id)) bookmarkedIds - id else bookmarkedIds + id
+                      },
+                      onItemClick = { item ->
+                        selectedArticleItem = item
+                      },
+                      onExploreClick = {
+                        currentNavTab = "الرئيسية"
+                      }
+                    )
+                  }
+                  key == "خريطة" -> {
+                    MapScreen(onItemClick = { selectedArticleItem = it })
+                  }
+                  key == "الاختبارات" -> {
+                    QuizScreen()
+                  }
+                  key == "المزيد" -> {
+                    MoreScreen()
+                  }
                 }
               }
             }
@@ -292,16 +350,28 @@ fun HomeScreen(
 }
 
 // -------------------------------------------------------------
-// EXACT HERO HEADER MATCHING UPLOADED PHOTO
+// REDESIGNED HERO HEADER (GLASS TOP BAR + GLOWING EMBLEM)
 // -------------------------------------------------------------
 @Composable
 fun ExactHeroHeaderSection() {
+  // Slow breathing glow for the royal emblem
+  val infiniteTransition = rememberInfiniteTransition(label = "emblem_glow")
+  val emblemGlow by infiniteTransition.animateFloat(
+    initialValue = 0.35f,
+    targetValue = 1f,
+    animationSpec = infiniteRepeatable(
+      animation = tween(2200, easing = FastOutSlowInEasing),
+      repeatMode = RepeatMode.Reverse
+    ),
+    label = "emblem_glow_alpha"
+  )
+
   Box(
     modifier = Modifier
       .fillMaxWidth()
-      .height(240.dp)
+      .height(250.dp)
   ) {
-    // Hieroglyphic Stone Dark Background
+    // Hieroglyphic stone dark background
     Image(
       painter = painterResource(id = R.drawable.hero_egypt_hieroglyphics_1787518543829),
       contentDescription = "Hieroglyphic Wall",
@@ -309,7 +379,7 @@ fun ExactHeroHeaderSection() {
       modifier = Modifier.fillMaxSize()
     )
 
-    // Dark Gradient Overlay for moody lighting
+    // Moody gradient overlay
     Box(
       modifier = Modifier
         .fillMaxSize()
@@ -324,12 +394,12 @@ fun ExactHeroHeaderSection() {
         )
     )
 
-    // Right Side Pharaoh Statue in background (Matching the photo)
+    // Pharaoh statue blended into the background (RTL: start = right edge)
     Box(
       modifier = Modifier
         .fillMaxHeight()
         .width(180.dp)
-        .align(Alignment.CenterStart) // In RTL: Start is Right side
+        .align(Alignment.CenterStart)
         .offset(x = 10.dp, y = (-10).dp)
     ) {
       Image(
@@ -338,7 +408,6 @@ fun ExactHeroHeaderSection() {
         contentScale = ContentScale.Fit,
         modifier = Modifier.fillMaxSize()
       )
-      // Smooth gradient blending pharaoh into dark background
       Box(
         modifier = Modifier
           .fillMaxSize()
@@ -353,69 +422,62 @@ fun ExactHeroHeaderSection() {
       )
     }
 
-    // Top Header Content
     Column(
       modifier = Modifier
         .fillMaxSize()
         .padding(horizontal = 18.dp, vertical = 8.dp)
     ) {
-      Spacer(modifier = Modifier.height(16.dp))
+      Spacer(modifier = Modifier.height(14.dp))
 
-      // Top Actions Bar (Menu on one side, Bell & Profile on other side)
+      // Glass top action bar
       Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+          .fillMaxWidth()
+          .clip(RoundedCornerShape(20.dp))
+          .background(Color(0x3314161E))
+          .border(1.dp, GlassBorderSubtle, RoundedCornerShape(20.dp))
+          .padding(horizontal = 6.dp, vertical = 5.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
       ) {
-        // Left Action: 3 Gold Horizontal Bars (Menu)
+        // Menu button (three gold bars in a bordered circle)
         Box(
           modifier = Modifier
             .size(38.dp)
             .clip(CircleShape)
+            .border(1.dp, GlassBorderColor, CircleShape)
             .clickable { /* Menu */ },
           contentAlignment = Alignment.Center
         ) {
           Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp),
+            verticalArrangement = Arrangement.spacedBy(3.5.dp),
             horizontalAlignment = Alignment.CenterHorizontally
           ) {
-            Box(
-              modifier = Modifier
-                .width(20.dp)
-                .height(2.2.dp)
-                .background(GoldMain, RoundedCornerShape(2.dp))
-            )
-            Box(
-              modifier = Modifier
-                .width(15.dp)
-                .height(2.2.dp)
-                .background(GoldMain, RoundedCornerShape(2.dp))
-            )
-            Box(
-              modifier = Modifier
-                .width(20.dp)
-                .height(2.2.dp)
-                .background(GoldMain, RoundedCornerShape(2.dp))
-            )
+            Box(modifier = Modifier.width(17.dp).height(2.dp).background(GoldMain, RoundedCornerShape(2.dp)))
+            Box(modifier = Modifier.width(12.dp).height(2.dp).background(GoldMuted, RoundedCornerShape(2.dp)))
+            Box(modifier = Modifier.width(17.dp).height(2.dp).background(GoldMain, RoundedCornerShape(2.dp)))
           }
         }
 
-        // Right Actions: Bell with red dot + Profile avatar
-        Row(
-          verticalAlignment = Alignment.CenterVertically,
-          horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-          // Bell Icon
+        // App wordmark
+        Text(
+          text = "EGYPTOLOGY",
+          style = MaterialTheme.typography.labelMedium,
+          fontWeight = FontWeight.Bold,
+          color = GoldLightAccent.copy(alpha = 0.9f),
+          fontSize = 11.sp,
+          letterSpacing = 2.sp
+        )
+
+        // Bell with red dot + profile avatar
+        Row(verticalAlignment = Alignment.CenterVertically) {
           Box(contentAlignment = Alignment.TopEnd) {
-            IconButton(
-              onClick = { /* Notifications */ },
-              modifier = Modifier.size(36.dp)
-            ) {
+            IconButton(onClick = { /* Notifications */ }, modifier = Modifier.size(36.dp)) {
               Icon(
                 imageVector = Icons.Outlined.Notifications,
                 contentDescription = "Notifications",
                 tint = GoldMain,
-                modifier = Modifier.size(23.dp)
+                modifier = Modifier.size(21.dp)
               )
             }
             Box(
@@ -425,54 +487,78 @@ fun ExactHeroHeaderSection() {
                 .background(Color(0xFFE53935), CircleShape)
             )
           }
-
-          // Profile Button in gold ring
+          Spacer(modifier = Modifier.width(2.dp))
           Box(
             modifier = Modifier
-              .size(36.dp)
+              .size(34.dp)
               .clip(CircleShape)
-              .background(GlassDarkBg)
-              .border(1.2.dp, GoldMain, CircleShape)
-              .clickable { /* Profile */ },
+              .background(Brush.linearGradient(listOf(GoldMain.copy(alpha = 0.25f), Color(0xFF14161E))))
+              .border(1.2.dp, GoldMain.copy(alpha = 0.85f), CircleShape),
             contentAlignment = Alignment.Center
           ) {
             Icon(
               imageVector = Icons.Outlined.PersonOutline,
               contentDescription = "Profile",
               tint = GoldMain,
-              modifier = Modifier.size(20.dp)
+              modifier = Modifier.size(19.dp)
             )
           }
         }
       }
 
-      Spacer(modifier = Modifier.height(8.dp))
+      Spacer(modifier = Modifier.weight(1f))
 
-      // Center Title & Eye of Horus Emblem
+      // Centered glowing emblem + titles anchored near the bottom
       Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
       ) {
-        // Eye of Horus Golden Vector Icon
-        EyeOfHorusIcon(modifier = Modifier.size(46.dp))
+        Box(contentAlignment = Alignment.Center) {
+          // Radial halo behind the Eye of Horus
+          Box(
+            modifier = Modifier
+              .size(86.dp)
+              .graphicsLayer { alpha = emblemGlow * 0.55f }
+              .clip(CircleShape)
+              .background(
+                Brush.radialGradient(
+                  listOf(GoldMain.copy(alpha = 0.55f), Color.Transparent)
+                )
+              )
+          )
+          EyeOfHorusIcon(modifier = Modifier.size(48.dp))
+        }
 
-        Spacer(modifier = Modifier.height(4.dp))
+        Spacer(modifier = Modifier.height(6.dp))
 
         Text(
           text = "مصر القديمة",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
           color = GoldMain,
-          fontSize = 25.sp,
+          fontSize = 26.sp,
           letterSpacing = 0.5.sp
         )
 
-        Text(
-          text = "موسوعة علمية لعلم المصريات",
-          style = MaterialTheme.typography.bodySmall,
-          color = GoldLightAccent.copy(alpha = 0.85f),
-          fontSize = 11.5.sp
-        )
+        Spacer(modifier = Modifier.height(6.dp))
+
+        // Subtitle inside a subtle golden pill
+        Box(
+          modifier = Modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(Color(0x33DFB24C))
+            .border(1.dp, GlassBorderColor, RoundedCornerShape(20.dp))
+            .padding(horizontal = 14.dp, vertical = 5.dp)
+        ) {
+          Text(
+            text = "موسوعة علمية لعلم المصريات",
+            style = MaterialTheme.typography.bodySmall,
+            color = GoldLightAccent,
+            fontSize = 11.5.sp
+          )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
       }
     }
   }
@@ -912,7 +998,7 @@ fun GlassBadge(text: String) {
 }
 
 // -------------------------------------------------------------
-// DYNAMIC CURVED BOTTOM NAVIGATION (PERFECT RTL COORDINATES)
+// DYNAMIC CURVED BOTTOM NAVIGATION (SPRING ANIMATION + GLOW)
 // -------------------------------------------------------------
 @Composable
 fun CustomCurvedBottomNavigation(
@@ -928,10 +1014,17 @@ fun CustomCurvedBottomNavigation(
     NavItemData("المزيد", "المزيد", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
   )
 
+  val view = LocalView.current
   val selectedIndex = navItems.indexOfFirst { it.id == selectedTab }.coerceAtLeast(0)
+
+  // Bouncy spring drives the arch so it glides between tabs.
+  val springSpec = spring<Float>(
+    dampingRatio = Spring.DampingRatioMediumBouncy,
+    stiffness = Spring.StiffnessLow
+  )
   val animatedIndex by animateFloatAsState(
     targetValue = selectedIndex.toFloat(),
-    animationSpec = tween(durationMillis = 280),
+    animationSpec = springSpec,
     label = "nav_active_index"
   )
 
@@ -941,7 +1034,7 @@ fun CustomCurvedBottomNavigation(
       .padding(horizontal = 14.dp, vertical = 12.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
-    // Custom Canvas drawing the navbar with dynamic curved arch matching RTL position
+    // Custom Canvas drawing the navbar with a curved arch that follows the active tab
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
@@ -959,22 +1052,15 @@ fun CustomCurvedBottomNavigation(
       val archPeakHeight = 12.dp.toPx()
 
       val path = Path().apply {
-        // Start bottom-left
         moveTo(0f, h - cornerRadius)
-        // Left vertical line up
         lineTo(0f, cornerRadius)
-        // Top-left rounded corner
         arcTo(
           rect = Rect(0f, 0f, cornerRadius * 2, cornerRadius * 2),
           startAngleDegrees = 180f,
           sweepAngleDegrees = 90f,
           forceMoveTo = false
         )
-
-        // Top line leading to arch start
         lineTo(activeCenterX - archHalfWidth, 0f)
-
-        // Smooth cubic curve rising around active circle
         cubicTo(
           activeCenterX - archHalfWidth * 0.5f, 0f,
           activeCenterX - archHalfWidth * 0.35f, -archPeakHeight,
@@ -985,30 +1071,21 @@ fun CustomCurvedBottomNavigation(
           activeCenterX + archHalfWidth * 0.5f, 0f,
           activeCenterX + archHalfWidth, 0f
         )
-
-        // Top line continuing to top-right corner
         lineTo(w - cornerRadius, 0f)
-        // Top-right rounded corner
         arcTo(
           rect = Rect(w - cornerRadius * 2, 0f, w, cornerRadius * 2),
           startAngleDegrees = 270f,
           sweepAngleDegrees = 90f,
           forceMoveTo = false
         )
-
-        // Right vertical line down
         lineTo(w, h - cornerRadius)
-        // Bottom-right rounded corner
         arcTo(
           rect = Rect(w - cornerRadius * 2, h - cornerRadius * 2, w, h),
           startAngleDegrees = 0f,
           sweepAngleDegrees = 90f,
           forceMoveTo = false
         )
-
-        // Bottom horizontal line
         lineTo(cornerRadius, h)
-        // Bottom-left rounded corner
         arcTo(
           rect = Rect(0f, h - cornerRadius * 2, cornerRadius * 2, h),
           startAngleDegrees = 90f,
@@ -1018,13 +1095,19 @@ fun CustomCurvedBottomNavigation(
         close()
       }
 
-      // Draw Glass Dark Fill
+      // Soft outer glow behind the glass bar
       drawPath(
         path = path,
-        color = Color(0xF214161E)
+        brush = Brush.verticalGradient(
+          colors = listOf(GoldMain.copy(alpha = 0.10f), Color.Transparent)
+        ),
+        style = Stroke(width = 6.dp.toPx())
       )
 
-      // Draw Glass Border with Golden Glow
+      // Glass dark fill
+      drawPath(path = path, color = Color(0xF214161E))
+
+      // Golden gradient border
       drawPath(
         path = path,
         brush = Brush.linearGradient(
@@ -1038,7 +1121,7 @@ fun CustomCurvedBottomNavigation(
       )
     }
 
-    // Interactive Items Row
+    // Interactive items row
     Row(
       modifier = Modifier
         .fillMaxWidth()
@@ -1049,6 +1132,28 @@ fun CustomCurvedBottomNavigation(
       navItems.forEachIndexed { index, item ->
         val isSelected = selectedIndex == index
 
+        // Per-item animated values (icon scale, icon color, label alpha)
+        val iconScale by animateFloatAsState(
+          targetValue = if (isSelected) 1f else 0.86f,
+          animationSpec = if (isSelected) springSpec else tween(200),
+          label = "nav_icon_scale_$index"
+        )
+        val tint by animateColorAsState(
+          targetValue = if (isSelected) GoldMain else TextMutedColor.copy(alpha = 0.75f),
+          animationSpec = tween(220),
+          label = "nav_tint_$index"
+        )
+        val labelAlpha by animateFloatAsState(
+          targetValue = if (isSelected) 1f else 0.65f,
+          animationSpec = tween(220),
+          label = "nav_label_alpha_$index"
+        )
+        val elevation by animateFloatAsState(
+          targetValue = if (isSelected) 14.dp.value else 0f,
+          animationSpec = springSpec,
+          label = "nav_glow_$index"
+        )
+
         Column(
           horizontalAlignment = Alignment.CenterHorizontally,
           verticalArrangement = Arrangement.Center,
@@ -1058,63 +1163,54 @@ fun CustomCurvedBottomNavigation(
             .clickable(
               interactionSource = remember { MutableInteractionSource() },
               indication = null
-            ) { onTabSelected(item.id) }
+            ) {
+              if (!isSelected) {
+                view.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onTabSelected(item.id)
+              }
+            }
             .padding(vertical = 4.dp)
         ) {
-          if (isSelected) {
-            // Elevated Active Circle with Gold Ring
-            Box(
-              modifier = Modifier
-                .offset(y = (-14).dp)
-                .size(50.dp)
-                .clip(CircleShape)
-                .background(
-                  Brush.linearGradient(
-                    colors = listOf(
-                      Color(0xFF1F222C),
-                      Color(0xFF14161E)
-                    )
-                  )
-                )
-                .border(1.6.dp, GoldMain, CircleShape),
-              contentAlignment = Alignment.Center
-            ) {
-              Icon(
-                imageVector = item.activeIcon,
-                contentDescription = item.title,
-                tint = GoldMain,
-                modifier = Modifier.size(24.dp)
+          Box(contentAlignment = Alignment.Center) {
+            if (isSelected) {
+              // Golden halo behind the active icon
+              Box(
+                modifier = Modifier
+                  .size(46.dp)
+                  .graphicsLayer {
+                    scaleX = 1f + (elevation / 40f)
+                    scaleY = 1f + (elevation / 40f)
+                    alpha = 0.35f
+                  }
+                  .clip(CircleShape)
+                  .background(Brush.radialGradient(listOf(GoldMain.copy(alpha = 0.9f), Color.Transparent)))
               )
             }
-
-            // Arabic Title + Gold Indicator
-            Text(
-              text = item.title,
-              style = MaterialTheme.typography.labelSmall,
-              color = GoldMain,
-              fontSize = 10.5.sp,
-              fontWeight = FontWeight.Bold,
-              maxLines = 1,
-              modifier = Modifier.offset(y = (-10).dp)
-            )
-          } else {
-            // Inactive Tab
             Icon(
-              imageVector = item.inactiveIcon,
+              imageVector = item.activeIcon,
               contentDescription = item.title,
-              tint = TextMutedColor.copy(alpha = 0.75f),
-              modifier = Modifier.size(22.dp)
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-              text = item.title,
-              style = MaterialTheme.typography.labelSmall,
-              color = TextMutedColor.copy(alpha = 0.75f),
-              fontSize = 10.sp,
-              fontWeight = FontWeight.Normal,
-              maxLines = 1
+              tint = tint,
+              modifier = Modifier
+                .size(24.dp)
+                .graphicsLayer {
+                  scaleX = iconScale
+                  scaleY = iconScale
+                  translationY = if (isSelected) (-12).dp.toPx() else 0f
+                }
             )
           }
+
+          Spacer(modifier = Modifier.height(if (isSelected) 16.dp else 4.dp))
+
+          Text(
+            text = item.title,
+            style = MaterialTheme.typography.labelSmall,
+            color = tint,
+            fontSize = if (isSelected) 10.5.sp else 10.sp,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            maxLines = 1,
+            modifier = Modifier.graphicsLayer { alpha = labelAlpha }
+          )
         }
       }
     }

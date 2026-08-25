@@ -1,0 +1,20 @@
+# Build outputs and local files
+*.iml
+.gradle
+.kotlin
+/local.properties
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+
+# Secrets / env files are never committed
+.env
+
+# debug.keystore (and similar generated keystores) are generated automatically
+# by app/build.gradle.kts using keytool on the first build.
+# Never commit them; all generation values live as plain text in build.gradle.kts.
+debug.keystore
+*.jks
+*.keystore
