@@ -60,8 +60,8 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -1014,7 +1014,7 @@ fun CustomCurvedBottomNavigation(
     NavItemData("المزيد", "المزيد", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
   )
 
-  val view = LocalView.current
+  val haptics = LocalHapticFeedback.current
   val selectedIndex = navItems.indexOfFirst { it.id == selectedTab }.coerceAtLeast(0)
 
   // Bouncy spring drives the arch so it glides between tabs.
@@ -1165,7 +1165,7 @@ fun CustomCurvedBottomNavigation(
               indication = null
             ) {
               if (!isSelected) {
-                view.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                 onTabSelected(item.id)
               }
             }
