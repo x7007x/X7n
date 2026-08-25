@@ -173,14 +173,12 @@ fun ArticleDetailScreen(
             text = item.title,
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = GoldMain,
-            fontSize = 26.sp
+            color = GoldMain
           )
           Text(
             text = item.subtitle,
             style = MaterialTheme.typography.bodyMedium,
-            color = GoldLightAccent.copy(alpha = 0.9f),
-            fontSize = 13.5.sp
+            color = GoldLightAccent.copy(alpha = 0.9f)
           )
         }
       }
@@ -258,8 +256,7 @@ fun ArticleDetailScreen(
               text = article.overviewParagraph,
               style = MaterialTheme.typography.bodyLarge,
               color = BodyTextLight,
-              lineHeight = 26.sp,
-              fontSize = 14.5.sp
+              lineHeight = 26.sp
             )
           }
         }
@@ -295,16 +292,14 @@ fun ArticleDetailScreen(
               style = MaterialTheme.typography.titleMedium,
               fontWeight = FontWeight.SemiBold,
               color = GoldLightAccent,
-              lineHeight = 24.sp,
-              fontSize = 15.sp
+              lineHeight = 24.sp
             )
             if (article.quoteSource.isNotBlank()) {
               Spacer(modifier = Modifier.height(6.dp))
               Text(
                 text = "— ${article.quoteSource}",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextMutedColor,
-                fontSize = 11.5.sp
+                color = TextMutedColor
               )
             }
           }
@@ -341,8 +336,7 @@ fun ArticleDetailScreen(
               text = highlight,
               style = MaterialTheme.typography.bodyMedium,
               color = BodyTextLight,
-              lineHeight = 22.sp,
-              fontSize = 13.5.sp
+              lineHeight = 22.sp
             )
           }
         }
@@ -371,8 +365,7 @@ fun ArticleDetailScreen(
               text = "• السجل العام للآثار المصرية - وزارة السياحة والآثار\n• أبحاث المجلس الأعلى للآثار وهيئة المتحف المصري\n• دراسات البروفيسور سليم حسن (موسوعة مصر القديمة)",
               style = MaterialTheme.typography.bodySmall,
               color = TextMutedColor,
-              lineHeight = 22.sp,
-              fontSize = 12.sp
+              lineHeight = 22.sp
             )
           }
         }

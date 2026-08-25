@@ -35,7 +35,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.data.EgyptItem
 import com.negm.egyptology.ui.components.EgyptItemCard
@@ -115,14 +114,12 @@ fun ViewAllScreen(
             text = "سجل الآثار المصرية",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = GoldMain,
-            fontSize = 18.sp
+            color = GoldMain
           )
           Text(
             text = "مجموع ${displayedItems.size} عنصراً مسجلاً",
             style = MaterialTheme.typography.bodySmall,
-            color = TextMutedColor,
-            fontSize = 11.sp
+            color = TextMutedColor
           )
         }
       }

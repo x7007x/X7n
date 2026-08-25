@@ -24,6 +24,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -74,14 +76,25 @@ fun HomeScreen(
       .background(DarkPageBg)
   ) {
     item {
-      Image(
-        painter = painterResource(id = R.drawable.home_header),
-        contentDescription = "Header",
-        contentScale = ContentScale.Crop,
-        modifier = Modifier
-          .fillMaxWidth()
-          .height(180.dp)
-      )
+      Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+        Image(
+          painter = painterResource(id = R.drawable.home_header),
+          contentDescription = "Header",
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.fillMaxSize()
+        )
+        Box(
+          modifier = Modifier
+            .fillMaxSize()
+            .background(
+              Brush.verticalGradient(
+                0f to Color.Transparent,
+                0.45f to Color.Transparent,
+                1f to DarkPageBg
+              )
+            )
+        )
+      }
     }
     item {
       SearchBarSection(

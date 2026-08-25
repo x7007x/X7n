@@ -54,13 +54,11 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Category
 import com.negm.egyptology.data.CategoryMeta
 import com.negm.egyptology.data.EgyptItem
@@ -92,7 +90,6 @@ fun GlassBadge(text: String) {
       text = text,
       style = MaterialTheme.typography.labelSmall,
       color = TextMutedColor,
-      fontSize = 10.sp,
       maxLines = 1
     )
   }
@@ -112,8 +109,7 @@ fun SectionTitle(title: String, icon: androidx.compose.ui.graphics.vector.ImageV
       text = title,
       style = MaterialTheme.typography.titleMedium,
       fontWeight = FontWeight.Bold,
-      color = Color(0xFFF3D58C),
-      fontSize = 17.sp
+      color = Color(0xFFF3D58C)
     )
   }
 }
@@ -147,25 +143,22 @@ fun SearchBarSection(
       )
       Spacer(modifier = Modifier.width(10.dp))
 
-      Box(modifier = Modifier.weight(1f)) {
+      val fieldStyle = MaterialTheme.typography.bodyMedium.copy(textAlign = TextAlign.Start)
+
+      Box(modifier = Modifier.weight(1f), contentAlignment = Alignment.CenterStart) {
         if (query.isEmpty()) {
           Text(
             "...ابحث عن ملك، متحف، مقبرة، مجموعة",
+            style = fieldStyle,
             color = TextMutedColor.copy(alpha = 0.75f),
-            fontSize = 13.sp,
-            maxLines = 1,
-            modifier = Modifier.align(Alignment.CenterStart)
+            maxLines = 1
           )
         }
         BasicTextField(
           value = query,
           onValueChange = onQueryChange,
           singleLine = true,
-          textStyle = TextStyle(
-            color = BodyTextLight,
-            fontSize = 13.sp,
-            textAlign = TextAlign.Start
-          ),
+          textStyle = fieldStyle.copy(color = BodyTextLight),
           cursorBrush = SolidColor(GoldMain),
           modifier = Modifier.fillMaxWidth()
         )
@@ -245,8 +238,7 @@ private fun CategoryItem(
       textAlign = TextAlign.Center,
       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
       maxLines = 1,
-      overflow = TextOverflow.Ellipsis,
-      fontSize = 10.5.sp
+      overflow = TextOverflow.Ellipsis
     )
   }
 }
@@ -276,14 +268,12 @@ fun SectionHeader(
           text = meta.title,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
-          color = Color(0xFFF3D58C),
-          fontSize = 18.sp
+          color = Color(0xFFF3D58C)
         )
         Text(
           text = meta.subtitle,
           style = MaterialTheme.typography.bodySmall,
-          color = TextMutedColor,
-          fontSize = 11.5.sp
+          color = TextMutedColor
         )
       }
     }
@@ -305,8 +295,7 @@ fun SectionHeader(
       Text(
         text = "عرض الكل",
         style = MaterialTheme.typography.labelMedium,
-        color = GoldMain,
-        fontSize = 12.5.sp
+        color = GoldMain
       )
     }
   }
@@ -377,8 +366,7 @@ fun EgyptItemCard(
           fontWeight = FontWeight.Bold,
           color = GoldMain,
           maxLines = 1,
-          overflow = TextOverflow.Ellipsis,
-          fontSize = 18.sp
+          overflow = TextOverflow.Ellipsis
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -396,8 +384,7 @@ fun EgyptItemCard(
             style = MaterialTheme.typography.bodySmall,
             color = TextMutedColor,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            fontSize = 12.sp
+            overflow = TextOverflow.Ellipsis
           )
           Spacer(modifier = Modifier.width(5.dp))
           Icon(
@@ -461,8 +448,7 @@ fun QuickStatCard(title: String, value: String, modifier: Modifier = Modifier) {
       Text(
         text = title,
         style = MaterialTheme.typography.labelSmall,
-        color = TextMutedColor,
-        fontSize = 11.sp
+        color = TextMutedColor
       )
       Spacer(modifier = Modifier.height(4.dp))
       Text(
@@ -471,8 +457,7 @@ fun QuickStatCard(title: String, value: String, modifier: Modifier = Modifier) {
         fontWeight = FontWeight.Bold,
         color = GoldMain,
         maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        fontSize = 14.sp
+        overflow = TextOverflow.Ellipsis
       )
     }
   }
@@ -489,18 +474,16 @@ fun TableRowItem(field: String, value: String, isEven: Boolean) {
   ) {
     Text(
       text = field,
-      style = MaterialTheme.typography.bodySmall,
+      style = MaterialTheme.typography.bodyMedium,
       fontWeight = FontWeight.Bold,
       color = GoldMain,
-      modifier = Modifier.weight(0.42f),
-      fontSize = 12.5.sp
+      modifier = Modifier.weight(0.42f)
     )
     Text(
       text = value,
       style = MaterialTheme.typography.bodyMedium,
       color = BodyTextLight,
-      modifier = Modifier.weight(0.58f),
-      fontSize = 12.5.sp
+      modifier = Modifier.weight(0.58f)
     )
   }
 }

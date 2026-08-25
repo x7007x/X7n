@@ -30,7 +30,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.ui.theme.CardTextTone
 import com.negm.egyptology.ui.theme.DarkPageBg
@@ -68,14 +67,12 @@ fun MoreScreen(catalog: Catalog) {
           text = "المزيد من المصادر والمراجع",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
-          color = GoldMain,
-          fontSize = 20.sp
+          color = GoldMain
         )
         Text(
           text = "المكتبة العلمية الرقمية لعلم المصريات",
           style = MaterialTheme.typography.bodySmall,
-          color = TextMutedColor,
-          fontSize = 11.5.sp
+          color = TextMutedColor
         )
       }
     }
@@ -103,8 +100,7 @@ fun MoreScreen(catalog: Catalog) {
             Text(
               text = source.description,
               style = MaterialTheme.typography.bodySmall,
-              color = CardTextTone,
-              fontSize = 12.sp
+              color = CardTextTone
             )
           }
         }

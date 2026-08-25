@@ -93,14 +93,12 @@ fun MapScreen(
           text = "خريطة المعالم الأثرية",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
-          color = GoldMain,
-          fontSize = 20.sp
+          color = GoldMain
         )
         Text(
           text = "المعالم والمواقع الجغرافية على طول النيل",
           style = MaterialTheme.typography.bodySmall,
-          color = TextMutedColor,
-          fontSize = 11.5.sp
+          color = TextMutedColor
         )
       }
     }
@@ -140,7 +138,6 @@ fun MapScreen(
               text = "يمتد العمران المصري القديم من الدلتا شمالاً (منف والإسكندرية) مروراً بآثار الجيزة وسقارة حتى قلب الصعيد في طيبة (الأقصر) وأسوان وأبو سمبل جنوباً.",
               style = MaterialTheme.typography.bodyMedium,
               color = CardTextTone,
-              fontSize = 13.sp,
               lineHeight = 20.sp
             )
           }
@@ -189,8 +186,7 @@ fun MapScreen(
               Text(
                 text = "${item.tag1} • ${item.subtitle}",
                 style = MaterialTheme.typography.bodySmall,
-                color = TextMutedColor,
-                fontSize = 11.5.sp
+                color = TextMutedColor
               )
             }
             Icon(

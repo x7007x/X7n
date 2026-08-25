@@ -45,7 +45,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.data.EgyptItem
 import com.negm.egyptology.ui.components.EgyptItemCard
@@ -128,14 +127,12 @@ fun FavoritesScreen(
             text = "قائمة المفضلة",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
-            color = GoldMain,
-            fontSize = 20.sp
+            color = GoldMain
           )
           Text(
             text = "السجلات المحفوظة للرجوع السريع",
             style = MaterialTheme.typography.bodySmall,
-            color = TextMutedColor,
-            fontSize = 11.5.sp
+            color = TextMutedColor
           )
         }
       }
@@ -150,8 +147,7 @@ fun FavoritesScreen(
           text = "${bookmarkedItems.size} عنصر",
           style = MaterialTheme.typography.labelSmall,
           color = GoldMain,
-          fontWeight = FontWeight.Bold,
-          fontSize = 11.sp
+          fontWeight = FontWeight.Bold
         )
       }
     }
@@ -186,16 +182,14 @@ fun FavoritesScreen(
             text = "لا توجد عناصر في المفضلة",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = GoldMain,
-            fontSize = 18.sp
+            color = GoldMain
           )
           Spacer(modifier = Modifier.height(6.dp))
           Text(
             text = "اضغط على أيقونة الإشارة المرجعية داخل أي بطاقة لحفظها هنا",
             style = MaterialTheme.typography.bodySmall,
             color = TextMutedColor,
-            textAlign = TextAlign.Center,
-            fontSize = 13.sp
+            textAlign = TextAlign.Center
           )
           Spacer(modifier = Modifier.height(24.dp))
           Button(
@@ -213,7 +207,11 @@ fun FavoritesScreen(
               modifier = Modifier.size(18.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("استكشف الموسوعة", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Text(
+              "استكشف الموسوعة",
+              style = MaterialTheme.typography.titleSmall,
+              fontWeight = FontWeight.Bold
+            )
           }
         }
       }
@@ -279,8 +277,7 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
       text = label,
       style = MaterialTheme.typography.labelMedium,
       color = if (isSelected) GoldMain else TextMutedColor,
-      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-      fontSize = 12.sp
+      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
     )
   }
 }

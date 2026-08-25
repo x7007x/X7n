@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -48,7 +49,6 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
@@ -103,6 +103,7 @@ fun CurvedBottomNavigation(
   Box(
     modifier = Modifier
       .fillMaxWidth()
+      .navigationBarsPadding()
       .padding(horizontal = 14.dp, vertical = 12.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
@@ -124,7 +125,7 @@ fun CurvedBottomNavigation(
       val archHalfWidth = itemWidth * 0.42f
       val archPeakHeight = 14.dp.toPx()
 
-      val cornerR = 30.dp.toPx()
+      val cornerR = barH / 2f // fully rounded pill frame
       val path = Path().apply {
         moveTo(0f, barH - cornerR)
         lineTo(0f, cornerR)
@@ -257,7 +258,6 @@ fun CurvedBottomNavigation(
             text = tab.label,
             style = MaterialTheme.typography.labelSmall,
             color = tint,
-            fontSize = 10.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1
           )

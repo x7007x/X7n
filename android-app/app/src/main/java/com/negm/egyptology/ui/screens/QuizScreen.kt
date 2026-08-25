@@ -88,14 +88,12 @@ fun QuizScreen(catalog: Catalog) {
           text = "اختبارات الحضارة المصرية",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
-          color = GoldMain,
-          fontSize = 20.sp
+          color = GoldMain
         )
         Text(
           text = "السؤال ${currentQuestionIndex + 1} من ${questions.size}",
           style = MaterialTheme.typography.bodySmall,
-          color = TextMutedColor,
-          fontSize = 11.5.sp
+          color = TextMutedColor
         )
       }
     }
@@ -114,7 +112,6 @@ fun QuizScreen(catalog: Catalog) {
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
           color = Color(0xFFF3D58C),
-          fontSize = 16.sp,
           lineHeight = 24.sp
         )
 
@@ -150,8 +147,7 @@ fun QuizScreen(catalog: Catalog) {
               text = option,
               style = MaterialTheme.typography.bodyMedium,
               color = if (isCurrentChoice) GoldMain else Color(0xFFE0DBD1),
-              fontWeight = if (isCurrentChoice) FontWeight.Bold else FontWeight.Normal,
-              fontSize = 14.sp
+              fontWeight = if (isCurrentChoice) FontWeight.Bold else FontWeight.Normal
             )
           }
         }
