@@ -158,12 +158,13 @@ fun FavoritesScreen(
             .border(1.dp, GlassBorderColor, RoundedCornerShape(12.dp))
             .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
-        Text(
-          text = "${bookmarkedItems.size} عنصر",
-          style = MaterialTheme.typography.labelSmall,
-          color = GoldMain,
-          fontWeight = FontWeight.Bold
-        )
+          Text(
+            text = "${bookmarkedItems.size} عنصر",
+            style = MaterialTheme.typography.labelSmall,
+            color = GoldMain,
+            fontWeight = FontWeight.Bold
+          )
+        }
       }
     }
 
