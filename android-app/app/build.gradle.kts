@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.Properties
 import java.util.UUID
 
@@ -50,7 +51,7 @@ val generateDebugKeystore = tasks.register("generateDebugKeystore") {
       |alias=$debugKeyAlias
       """.trimMargin()
     )
-    val keytool = java.io.File(System.getProperty("java.home"), "bin/keytool").absolutePath
+    val keytool = File(System.getProperty("java.home"), "bin/keytool").absolutePath
     val process = ProcessBuilder(
       keytool, "-genkeypair",
       "-keystore", debugKeystoreFile.absolutePath,
