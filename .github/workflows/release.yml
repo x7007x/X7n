@@ -121,19 +121,25 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.version.outputs.tag }}" \
-            --repo "${{ github.repository }}" \
-            --title "egyptology ${{ steps.version.outputs.tag }}" \
-            --notes "## Egyptology Encyclopedia ${{ steps.version.outputs.tag }}
+          cat > release-notes.md <<'EOF'
+          ## Egyptology Encyclopedia ${{ steps.version.outputs.tag }}
 
-            ### Changes
-            ${{ github.event.head_commit.message || format('Manual build ({0})', env.BUILD_TYPE) }}
+          ### Changes
+          ${{ github.event.head_commit.message || format('Manual build ({0})', env.BUILD_TYPE) }}
 
-            ---
-            **Version code:** `${{ steps.version.outputs.code }}`
-            **Published:** `${{ steps.version.outputs.timestamp }}`
-            **Commit:** `${{ github.sha }}`" \
-            ${{ steps.outputs.outputs.pattern }}
+          ---
+          **Version code:** `${{ steps.version.outputs.code }}`
+          **Published:** `${{ steps.version.outputs.timestamp }}`
+          **Commit:** `${{ github.sha }}`
+          EOF
+          TAG="${{ steps.version.outputs.tag }}"
+          TITLE="egyptology $TAG"
+          if gh release view "$TAG" --repo "${{ github.repository }}" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "${{ github.repository }}" --title "$TITLE" --notes-file release-notes.md
+            gh release upload "$TAG" --repo "${{ github.repository }}" ${{ steps.outputs.outputs.pattern }} --clobber
+          else
+            gh release create "$TAG" --repo "${{ github.repository }}" --title "$TITLE" --notes-file release-notes.md ${{ steps.outputs.outputs.pattern }}
+          fi
 
       - name: Upload build artifact
         if: env.BUILD_TYPE == 'debug'
