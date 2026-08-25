@@ -532,12 +532,12 @@ fun ExactHeroHeaderSection() {
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-          text = "مصر القديمة",
+          text = "egyptology",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
           color = GoldMain,
           fontSize = 26.sp,
-          letterSpacing = 0.5.sp
+          letterSpacing = 2.sp
         )
 
         Spacer(modifier = Modifier.height(6.dp))

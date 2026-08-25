@@ -108,8 +108,8 @@ android {
     applicationId = "com.negm.egyptology"
     minSdk = 24
     targetSdk = 36
-    versionCode = 1
-    versionName = "1.0"
+    versionCode = 2
+    versionName = "1.1"
   }
 
   signingConfigs {
@@ -144,8 +144,10 @@ android {
   buildTypes {
     release {
       isCrunchPngs = false
-      isMinifyEnabled = false
-      isShrinkResources = false
+      // Tiny build: R8 code shrinking + resource shrinking strip all unused
+      // Compose icons/classes and cut the APK size dramatically.
+      isMinifyEnabled = true
+      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
       signingConfig = signingConfigs.getByName("release")
     }
