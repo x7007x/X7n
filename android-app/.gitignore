@@ -16,5 +16,6 @@
 # by app/build.gradle.kts using keytool on the first build.
 # Never commit them; all generation values live as plain text in build.gradle.kts.
 debug.keystore
+debug.keystore.properties
 *.jks
 *.keystore
