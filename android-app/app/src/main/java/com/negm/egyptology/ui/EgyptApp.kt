@@ -1,19 +1,16 @@
 package com.negm.egyptology.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
@@ -25,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.negm.egyptology.data.Catalog
+import com.negm.egyptology.data.EgyptItem
 import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.CurvedBottomNavigation
 import com.negm.egyptology.ui.components.NavTab
@@ -61,7 +59,11 @@ fun EgyptApp() {
   val selectedArticle =
     state.selectedArticleId?.let { id -> catalog.items.firstOrNull { it.id == id } }
 
-  // System back navigation through the screen stack.
+  // Keep the last opened article composed so the exit animation has content.
+  var lastArticle by remember { mutableStateOf<EgyptItem?>(null) }
+  selectedArticle?.let { lastArticle = it }
+
+  // System back navigation: detail -> view all -> home tab.
   BackHandler(
     enabled = selectedArticle != null || state.viewAllCategory != null || state.tab != NavTab.HOME
   ) {
@@ -76,124 +78,86 @@ fun EgyptApp() {
     modifier = Modifier.fillMaxSize(),
     containerColor = DarkPageBg,
     bottomBar = {
-      if (selectedArticle == null) {
-        CurvedBottomNavigation(
-          selectedTab = if (state.viewAllCategory != null) NavTab.HOME else state.tab,
-          onTabSelected = { tab ->
-            state.viewAllCategory = null
-            state.selectedArticleId = null
-            state.tab = tab
-          }
-        )
-      }
+      CurvedBottomNavigation(
+        selectedTab = if (state.viewAllCategory != null) NavTab.HOME else state.tab,
+        onTabSelected = { tab ->
+          // Instant switch: clear overlays, jump to the tab. Only the nav
+          // icon/arch animate - page content swaps without sliding.
+          state.viewAllCategory = null
+          state.selectedArticleId = null
+          state.tab = tab
+        }
+      )
     }
   ) { innerPadding ->
-    // Stable key for animated navigation between screens
-    val navKey = when {
-      selectedArticle != null -> "detail:${selectedArticle.id}"
-      state.viewAllCategory != null -> "view_all:${state.viewAllCategory}"
-      else -> state.tab.name
-    }
-
-    AnimatedContent(
-      targetState = navKey,
+    Box(
       modifier = Modifier
         .fillMaxSize()
-        .padding(innerPadding),
-      transitionSpec = {
-        if (targetState.startsWith("detail")) {
-          // Detail screen slides up from the bottom edge
-          slideInVertically(
-            initialOffsetY = { it / 8 },
-            animationSpec = tween(280, easing = FastOutSlowInEasing)
-          ) + fadeIn(tween(240)) togetherWith fadeOut(tween(160))
-        } else {
-          // Tabs cross-fade with a gentle RTL horizontal slide
-          fun orderOf(key: String): Int {
-            val base = key.substringBefore(":")
-            val tab = when {
-              base.startsWith("view_all") -> NavTab.HOME
-              base.startsWith("detail") -> NavTab.HOME
-              else -> NavTab.entries.firstOrNull { it.name == base } ?: NavTab.HOME
-            }
-            return tabsOrder.indexOf(tab).let { if (it < 0) 0 else it }
-          }
-          val direction = if (orderOf(targetState) >= orderOf(initialState)) -1 else 1
-          (
-            slideInHorizontally(
-              initialOffsetX = { direction * it / 14 },
-              animationSpec = tween(260, easing = FastOutSlowInEasing)
-            ) + fadeIn(tween(240))
-            ) togetherWith (
-            slideOutHorizontally(
-              targetOffsetX = { -direction * it / 14 },
-              animationSpec = tween(220)
-            ) + fadeOut(tween(180))
-            )
-        }
-      },
-      label = "nav_screen_transition"
-    ) { key ->
-      Box(
-        modifier = Modifier
-          .fillMaxSize()
-          .background(DarkPageBg)
+        .padding(innerPadding)
+        .background(DarkPageBg)
+    ) {
+      // Base tab screen (instant swap on tab change)
+      when (state.tab) {
+        NavTab.HOME -> HomeScreen(
+          catalog = catalog,
+          bookmarkedIds = state.bookmarkedIds.toSet(),
+          onBookmarkToggle = { state.toggleBookmark(it) },
+          onItemClick = { item -> state.selectedArticleId = item.id },
+          onViewAllClick = { category -> state.viewAllCategory = category }
+        )
+        NavTab.FAVORITES -> FavoritesScreen(
+          catalog = catalog,
+          bookmarkedIds = state.bookmarkedIds.toSet(),
+          onBookmarkToggle = { state.toggleBookmark(it) },
+          onItemClick = { item -> state.selectedArticleId = item.id },
+          onExploreClick = { state.tab = NavTab.HOME }
+        )
+        NavTab.MAP -> MapScreen(
+          catalog = catalog,
+          onItemClick = { item -> state.selectedArticleId = item.id }
+        )
+        NavTab.QUIZ -> QuizScreen(catalog)
+        NavTab.MORE -> MoreScreen(catalog)
+      }
+
+      // "View all" replaces the home list instantly while staying under the nav bar
+      state.viewAllCategory?.let { category ->
+        ViewAllScreen(
+          catalog = catalog,
+          initialCategory = category,
+          bookmarkedIds = state.bookmarkedIds.toSet(),
+          onBookmarkToggle = { state.toggleBookmark(it) },
+          onItemClick = { item -> state.selectedArticleId = item.id },
+          onBack = { state.viewAllCategory = null }
+        )
+      }
+
+      // Detail screen rises from the bottom as an overlay layer
+      AnimatedVisibility(
+        visible = selectedArticle != null && lastArticle != null,
+        enter = slideInVertically(
+          initialOffsetY = { it / 8 },
+          animationSpec = tween(280, easing = FastOutSlowInEasing)
+        ) + fadeIn(tween(240)),
+        exit = slideOutVertically(
+          targetOffsetY = { it / 10 },
+          animationSpec = tween(200)
+        ) + fadeOut(tween(160)),
+        label = "detail_overlay"
       ) {
-        when {
-          key.startsWith("detail:") -> {
-            selectedArticle?.let { articleItem ->
-              ArticleDetailScreen(
-                item = articleItem,
-                article = EgyptRepository.articleFor(context, articleItem.id),
-                isBookmarked = state.bookmarkedIds.contains(articleItem.id),
-                onBookmarkToggle = { state.toggleBookmark(articleItem.id) },
-                onShareClick = {
-                  com.negm.egyptology.ui.components.shareEgyptArticle(context, articleItem)
-                },
-                onBack = { state.selectedArticleId = null }
-              )
-            }
-          }
-          key.startsWith("view_all") -> {
-            ViewAllScreen(
-              catalog = catalog,
-              initialCategory = state.viewAllCategory ?: "الكل",
-              bookmarkedIds = state.bookmarkedIds.toSet(),
-              onBookmarkToggle = { state.toggleBookmark(it) },
-              onItemClick = { item -> state.selectedArticleId = item.id },
-              onBack = { state.viewAllCategory = null }
-            )
-          }
-          state.tab == NavTab.HOME -> {
-            HomeScreen(
-              catalog = catalog,
-              bookmarkedIds = state.bookmarkedIds.toSet(),
-              onBookmarkToggle = { state.toggleBookmark(it) },
-              onItemClick = { item -> state.selectedArticleId = item.id },
-              onViewAllClick = { category -> state.viewAllCategory = category }
-            )
-          }
-          state.tab == NavTab.FAVORITES -> {
-            FavoritesScreen(
-              catalog = catalog,
-              bookmarkedIds = state.bookmarkedIds.toSet(),
-              onBookmarkToggle = { state.toggleBookmark(it) },
-              onItemClick = { item -> state.selectedArticleId = item.id },
-              onExploreClick = { state.tab = NavTab.HOME }
-            )
-          }
-          state.tab == NavTab.MAP -> {
-            MapScreen(
-              catalog = catalog,
-              onItemClick = { item -> state.selectedArticleId = item.id }
-            )
-          }
-          state.tab == NavTab.QUIZ -> QuizScreen(catalog)
-          state.tab == NavTab.MORE -> MoreScreen(catalog)
+        lastArticle?.let { article ->
+          ArticleDetailScreen(
+            item = article,
+            article = EgyptRepository.articleFor(context, article.id),
+            isBookmarked = state.bookmarkedIds.contains(article.id),
+            onBookmarkToggle = { state.toggleBookmark(article.id) },
+            onShareClick = {
+              com.negm.egyptology.ui.components.shareEgyptArticle(context, article)
+            },
+            onBack = { state.selectedArticleId = null }
+          )
         }
       }
     }
   }
 }
-
-private val tabsOrder = listOf(NavTab.MAP, NavTab.FAVORITES, NavTab.HOME, NavTab.QUIZ, NavTab.MORE)
