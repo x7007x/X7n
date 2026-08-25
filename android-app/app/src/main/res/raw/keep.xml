@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!-- Keeps bundled fonts from being stripped by the resource shrinker.
-     Fonts are loaded reflectively by Compose at runtime, so the shrinker
-     cannot always see the reference and may remove them (causing
-     Resources$NotFoundException crashes). -->
-<resources xmlns:tools="http://schemas.android.com/tools"
-    tools:keep="@font/app_font" />
