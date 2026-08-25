@@ -65,7 +65,7 @@ val generateDebugKeystore = tasks.register("generateDebugKeystore") {
     ).redirectErrorStream(true).start()
     val output = process.inputStream.bufferedReader().readText()
     if (process.waitFor() == 0) {
-      logger.lifecycle("Generated debug.keystore.")
+      println("Generated debug.keystore.")
     } else {
       throw GradleException("Failed to generate debug.keystore: $output")
     }
