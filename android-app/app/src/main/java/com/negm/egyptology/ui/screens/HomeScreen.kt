@@ -132,12 +132,33 @@ fun HomeScreen(
             .fillMaxSize()
             .background(
               Brush.verticalGradient(
-                0f to Color.Transparent,
-                0.45f to Color.Transparent,
+                0f to Color(0x33000000),
+                0.42f to Color.Transparent,
                 1f to DarkPageBg
               )
             )
         )
+        categoryMeta?.let { meta ->
+          Column(
+            modifier = Modifier
+              .align(Alignment.BottomEnd)
+              .padding(horizontal = 18.dp, vertical = 18.dp),
+            horizontalAlignment = Alignment.End
+          ) {
+            Text(
+              text = meta.title,
+              style = MaterialTheme.typography.headlineSmall,
+              color = com.negm.egyptology.ui.theme.GoldMain,
+              maxLines = 1
+            )
+            Text(
+              text = meta.subtitle,
+              style = MaterialTheme.typography.bodySmall,
+              color = Color.White.copy(alpha = 0.86f),
+              maxLines = 1
+            )
+          }
+        }
       }
     }
     item {

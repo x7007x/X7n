@@ -118,12 +118,13 @@ jobs:
 
       - name: Create GitHub Release
         if: env.BUILD_TYPE == 'release'
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.tag }}
-          name: "egyptology ${{ steps.version.outputs.tag }}"
-          body: |
-            ## Egyptology Encyclopedia ${{ steps.version.outputs.tag }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" \
+            --repo "${{ github.repository }}" \
+            --title "egyptology ${{ steps.version.outputs.tag }}" \
+            --notes "## Egyptology Encyclopedia ${{ steps.version.outputs.tag }}
 
             ### Changes
             ${{ github.event.head_commit.message || format('Manual build ({0})', env.BUILD_TYPE) }}
@@ -131,10 +132,8 @@ jobs:
             ---
             **Version code:** `${{ steps.version.outputs.code }}`
             **Published:** `${{ steps.version.outputs.timestamp }}`
-            **Commit:** `${{ github.sha }}`
-          files: ${{ steps.outputs.outputs.pattern }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-          fail_on_unmatched_files: true
+            **Commit:** `${{ github.sha }}`" \
+            ${{ steps.outputs.outputs.pattern }}
 
       - name: Upload build artifact
         if: env.BUILD_TYPE == 'debug'

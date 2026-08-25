@@ -42,10 +42,31 @@ import com.negm.egyptology.ui.theme.DarkPageBg
 /**
  * Root state holder: active tab, "view all" category, selected article and bookmarks.
  */
-class EgyptAppState(catalog: Catalog) {
+class EgyptAppState {
   var tab by mutableStateOf(NavTab.HOME)
   var viewAllCategory by mutableStateOf<String?>(null)
   var selectedArticleId by mutableStateOf<String?>(null)
+  val tabHistory = mutableStateListOf(NavTab.HOME)
+
+  fun selectTab(nextTab: NavTab) {
+    if (nextTab == tab) return
+    tabHistory.add(nextTab)
+    tab = nextTab
+    viewAllCategory = null
+    selectedArticleId = null
+  }
+
+  fun goBack() {
+    when {
+      selectedArticleId != null -> selectedArticleId = null
+      viewAllCategory != null -> viewAllCategory = null
+      tabHistory.size > 1 -> {
+        tabHistory.removeAt(tabHistory.lastIndex)
+        tab = tabHistory.last()
+      }
+      tab != NavTab.HOME -> tab = NavTab.HOME
+    }
+  }
 
   val bookmarkedIds = mutableStateListOf("king_ramses2", "pyr_khufu", "art_mask")
 
@@ -58,7 +79,7 @@ class EgyptAppState(catalog: Catalog) {
 fun EgyptApp() {
   val context = LocalContext.current
   val catalog = remember { EgyptRepository.catalog(context.applicationContext) }
-  val state = remember { EgyptAppState(catalog) }
+  val state = remember { EgyptAppState() }
 
   val selectedArticle =
     state.selectedArticleId?.let { id -> catalog.items.firstOrNull { it.id == id } }
@@ -67,15 +88,10 @@ fun EgyptApp() {
   var lastArticle by remember { mutableStateOf<EgyptItem?>(null) }
   selectedArticle?.let { lastArticle = it }
 
-  // System back navigation: detail -> view all -> home tab.
   BackHandler(
-    enabled = selectedArticle != null || state.viewAllCategory != null || state.tab != NavTab.HOME
+    enabled = selectedArticle != null || state.viewAllCategory != null || state.tabHistory.size > 1
   ) {
-    when {
-      selectedArticle != null -> state.selectedArticleId = null
-      state.viewAllCategory != null -> state.viewAllCategory = null
-      else -> state.tab = NavTab.HOME
-    }
+    state.goBack()
   }
 
   Scaffold(
@@ -84,11 +100,7 @@ fun EgyptApp() {
     bottomBar = {
       CurvedBottomNavigation(
         selectedTab = if (state.viewAllCategory != null) NavTab.HOME else state.tab,
-        onTabSelected = { tab ->
-          state.viewAllCategory = null
-          state.selectedArticleId = null
-          state.tab = tab
-        }
+        onTabSelected = { tab -> state.selectTab(tab) }
       )
     }
   ) { innerPadding ->
@@ -133,9 +145,9 @@ fun EgyptApp() {
             bookmarkedIds = state.bookmarkedIds.toSet(),
             onBookmarkToggle = { state.toggleBookmark(it) },
             onItemClick = { item -> state.selectedArticleId = item.id },
-            onExploreClick = { state.tab = NavTab.HOME },
+            onExploreClick = { state.selectTab(NavTab.HOME) },
             onShowAllClick = {
-              state.tab = NavTab.HOME
+              state.selectTab(NavTab.HOME)
               state.viewAllCategory = "الكل"
             }
           )
@@ -159,7 +171,7 @@ fun EgyptApp() {
           onBack = { state.viewAllCategory = null },
           onShowFavorites = {
             state.viewAllCategory = null
-            state.tab = NavTab.FAVORITES
+            state.selectTab(NavTab.FAVORITES)
           }
         )
       }
@@ -186,7 +198,7 @@ fun EgyptApp() {
             onShareClick = {
               com.negm.egyptology.ui.components.shareEgyptArticle(context, article)
             },
-            onBack = { state.selectedArticleId = null }
+            onBack = { state.goBack() }
           )
         }
       }
