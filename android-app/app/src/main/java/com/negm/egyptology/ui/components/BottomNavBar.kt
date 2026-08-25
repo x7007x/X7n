@@ -1,9 +1,8 @@
 package com.negm.egyptology.ui.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -12,7 +11,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -53,7 +51,6 @@ import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
 
-/** Bottom destinations, ordered right-to-left for the RTL layout. */
 enum class NavTab(
   val label: String,
   val activeIcon: ImageVector,
@@ -71,13 +68,6 @@ enum class NavTab(
   }
 }
 
-// -------------------------------------------------------------
-// DYNAMIC CURVED BOTTOM NAVIGATION
-// - Transparent outside the glass frame (only the arch rises out).
-// - Arch glides between tabs with a bouncy spring and lands exactly
-//   centered over the selected tab.
-// - Only the icon reacts to selection: it grows and lifts upward.
-// -------------------------------------------------------------
 @Composable
 fun CurvedBottomNavigation(
   selectedTab: NavTab,
@@ -86,13 +76,11 @@ fun CurvedBottomNavigation(
   val tabs = NavTab.entries.toList()
   val haptics = LocalHapticFeedback.current
   val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
-
   val barHeight = 70.dp
-  val archRoom = 20.dp // transparent headroom the rising arch lives in
-
+  val archRoom = 18.dp
   val selectionSpec = tween<Float>(
     durationMillis = 280,
-    easing = androidx.compose.animation.core.FastOutSlowInEasing
+    easing = FastOutSlowInEasing
   )
   val animatedIndex by animateFloatAsState(
     targetValue = selectedIndex.toFloat(),
@@ -107,77 +95,44 @@ fun CurvedBottomNavigation(
       .padding(horizontal = 14.dp, vertical = 12.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
-    // Glass frame + moving arch. Extra top headroom keeps the arch unclipped;
-    // nothing is filled outside the path, so the surroundings stay transparent.
     Canvas(
       modifier = Modifier
         .fillMaxWidth()
         .height(barHeight + archRoom)
     ) {
-      val w = size.width
-      val barH = barHeight.toPx()
+      val width = size.width
+      val height = barHeight.toPx()
       val room = archRoom.toPx()
-      val itemCount = tabs.size
-      val itemWidth = w / itemCount
-
-      // Exact horizontal center of the selected tab (RTL: index 0 = right edge).
-      val activeCenterX = w - itemWidth * (animatedIndex + 0.5f)
-      val archHalfWidth = itemWidth * 0.34f
-      val archPeakHeight = 10.dp.toPx()
-
-      val cornerR = barH / 2f // fully rounded pill frame
+      val itemWidth = width / tabs.size
+      val cornerRadius = height / 2f
+      val bumpHalfWidth = (itemWidth * 0.32f).coerceAtMost((width - cornerRadius * 2f) / 2f)
+      val requestedCenter = width - itemWidth * (animatedIndex + 0.5f)
+      val center = requestedCenter.coerceIn(
+        cornerRadius + bumpHalfWidth,
+        width - cornerRadius - bumpHalfWidth
+      )
+      val start = center - bumpHalfWidth
+      val end = center + bumpHalfWidth
+      val bumpHeight = 10.dp.toPx()
+      val quarterControl = bumpHalfWidth * 0.5522848f
       val path = Path().apply {
-        moveTo(0f, barH - cornerR)
-        lineTo(0f, cornerR)
-        arcTo(
-          rect = Rect(0f, 0f, cornerR * 2, cornerR * 2),
-          startAngleDegrees = 180f,
-          sweepAngleDegrees = 90f,
-          forceMoveTo = false
-        )
-        lineTo(activeCenterX - archHalfWidth, 0f)
-        // Smooth cubic arch rising around the active tab
-        cubicTo(
-          activeCenterX - archHalfWidth * 0.45f, 0f,
-          activeCenterX - archHalfWidth * 0.30f, -archPeakHeight,
-          activeCenterX, -archPeakHeight
-        )
-        cubicTo(
-          activeCenterX + archHalfWidth * 0.30f, -archPeakHeight,
-          activeCenterX + archHalfWidth * 0.45f, 0f,
-          activeCenterX + archHalfWidth, 0f
-        )
-        lineTo(w - cornerR, 0f)
-        arcTo(
-          rect = Rect(w - cornerR * 2, 0f, w, cornerR * 2),
-          startAngleDegrees = 270f,
-          sweepAngleDegrees = 90f,
-          forceMoveTo = false
-        )
-        lineTo(w, barH - cornerR)
-        arcTo(
-          rect = Rect(w - cornerR * 2, barH - cornerR * 2, w, barH),
-          startAngleDegrees = 0f,
-          sweepAngleDegrees = 90f,
-          forceMoveTo = false
-        )
-        lineTo(cornerR, barH)
-        arcTo(
-          rect = Rect(0f, barH - cornerR * 2, cornerR * 2, barH),
-          startAngleDegrees = 90f,
-          sweepAngleDegrees = 90f,
-          forceMoveTo = false
-        )
+        moveTo(0f, height - cornerRadius)
+        lineTo(0f, cornerRadius)
+        arcTo(Rect(0f, 0f, cornerRadius * 2f, cornerRadius * 2f), 180f, 90f, false)
+        lineTo(start, 0f)
+        cubicTo(start + quarterControl, 0f, center - quarterControl, -bumpHeight, center, -bumpHeight)
+        cubicTo(center + quarterControl, -bumpHeight, end - quarterControl, 0f, end, 0f)
+        lineTo(width - cornerRadius, 0f)
+        arcTo(Rect(width - cornerRadius * 2f, 0f, width, cornerRadius * 2f), 270f, 90f, false)
+        lineTo(width, height - cornerRadius)
+        arcTo(Rect(width - cornerRadius * 2f, height - cornerRadius * 2f, width, height), 0f, 90f, false)
+        lineTo(cornerRadius, height)
+        arcTo(Rect(0f, height - cornerRadius * 2f, cornerRadius * 2f, height), 90f, 90f, false)
         close()
       }
 
-      // Everything is drawn translated down by `room`, so negative-y arch
-      // coordinates land inside the canvas instead of being clipped.
       translate(top = room) {
-        // Glass dark fill (frame only - transparent everywhere else)
         drawPath(path, color = Color(0xF214161E))
-
-        // Thin golden gradient border following the frame + arch
         drawPath(
           path = path,
           brush = Brush.linearGradient(
@@ -192,7 +147,6 @@ fun CurvedBottomNavigation(
       }
     }
 
-    // Interactive items row aligned to the glass frame (bottom of the box)
     Row(
       modifier = Modifier
         .fillMaxWidth()
@@ -203,15 +157,13 @@ fun CurvedBottomNavigation(
     ) {
       tabs.forEachIndexed { index, tab ->
         val isSelected = tab == selectedTab
-
-        // Only the icon reacts: it grows and lifts slightly higher.
         val iconScale by animateFloatAsState(
-          targetValue = if (isSelected) 1.12f else 1f,
+          targetValue = if (isSelected) 1.08f else 1f,
           animationSpec = if (isSelected) selectionSpec else tween(200),
           label = "nav_icon_scale_$index"
         )
         val iconLift by animateFloatAsState(
-          targetValue = if (isSelected) 0.5f else 0f,
+          targetValue = if (isSelected) 0.35f else 0f,
           animationSpec = if (isSelected) selectionSpec else tween(220),
           label = "nav_icon_lift_$index"
         )
@@ -237,23 +189,19 @@ fun CurvedBottomNavigation(
               }
             }
         ) {
-          Box(contentAlignment = Alignment.Center) {
-            Icon(
-              imageVector = if (isSelected) tab.activeIcon else tab.inactiveIcon,
-              contentDescription = tab.label,
-              tint = tint,
-              modifier = Modifier
-                .size(24.dp)
-                .graphicsLayer {
-                  scaleX = iconScale
-                  scaleY = iconScale
-                  translationY = -iconLift * 8.dp.toPx()
-                }
-            )
-          }
-
-          Spacer(modifier = Modifier.height(6.dp))
-
+          Icon(
+            imageVector = if (isSelected) tab.activeIcon else tab.inactiveIcon,
+            contentDescription = tab.label,
+            tint = tint,
+            modifier = Modifier
+              .size(24.dp)
+              .graphicsLayer {
+                scaleX = iconScale
+                scaleY = iconScale
+                translationY = -iconLift * 7.dp.toPx()
+              }
+          )
+          androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(5.dp))
           Text(
             text = tab.label,
             style = MaterialTheme.typography.labelSmall,

@@ -1,5 +1,10 @@
 package com.negm.egyptology.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -32,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -63,7 +69,8 @@ fun FavoritesScreen(
   bookmarkedIds: Set<String>,
   onBookmarkToggle: (String) -> Unit,
   onItemClick: (EgyptItem) -> Unit,
-  onExploreClick: () -> Unit
+  onExploreClick: () -> Unit,
+  onShowAllClick: () -> Unit
 ) {
   val context = LocalContext.current
   var selectedFilter by remember { mutableStateOf("الكل") }
@@ -137,12 +144,20 @@ fun FavoritesScreen(
         }
       }
 
-      Box(
-        modifier = Modifier
-          .background(Color(0x33DFB24C), RoundedCornerShape(12.dp))
-          .border(1.dp, GlassBorderColor, RoundedCornerShape(12.dp))
-          .padding(horizontal = 10.dp, vertical = 4.dp)
-      ) {
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        TextButton(onClick = onShowAllClick) {
+          Text(
+            text = "الكل",
+            style = MaterialTheme.typography.labelLarge,
+            color = GoldMain
+          )
+        }
+        Box(
+          modifier = Modifier
+            .background(Color(0x33DFB24C), RoundedCornerShape(12.dp))
+            .border(1.dp, GlassBorderColor, RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
         Text(
           text = "${bookmarkedItems.size} عنصر",
           style = MaterialTheme.typography.labelSmall,
@@ -242,14 +257,24 @@ fun FavoritesScreen(
           .fillMaxWidth()
           .weight(1f)
       ) {
-        items(filteredFavorites, key = { it.id }) { item ->
-          EgyptItemCard(
-            item = item,
-            isBookmarked = true,
-            onBookmarkToggle = { onBookmarkToggle(item.id) },
-            onShareClick = { shareEgyptArticle(context, item) },
-            onClick = { onItemClick(item) }
-          )
+        item {
+          AnimatedContent(
+            targetState = filteredFavorites,
+            transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
+            label = "favorites_items_transition"
+          ) { itemsForFilter ->
+            Column {
+              itemsForFilter.forEach { item ->
+                EgyptItemCard(
+                  item = item,
+                  isBookmarked = true,
+                  onBookmarkToggle = { onBookmarkToggle(item.id) },
+                  onShareClick = { shareEgyptArticle(context, item) },
+                  onClick = { onItemClick(item) }
+                )
+              }
+            }
+          }
         }
         item {
           Spacer(modifier = Modifier.height(115.dp))

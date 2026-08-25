@@ -1,5 +1,9 @@
 package com.negm.egyptology.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -30,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.animation.core.tween
 import com.negm.egyptology.R
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.data.EgyptRepository
@@ -95,21 +100,33 @@ fun HomeScreen(
   ) {
     item {
       Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-        Image(
-          painter = painterResource(id = sectionBackground),
-          contentDescription = "Header",
-          contentScale = ContentScale.Crop,
-          modifier = Modifier.fillMaxSize()
-        )
-        Image(
-          painter = painterResource(id = sectionIllustration),
-          contentDescription = null,
-          contentScale = ContentScale.Fit,
-          modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = 18.dp, end = 18.dp)
-            .size(112.dp)
-        )
+        AnimatedContent(
+          targetState = sectionBackground,
+          transitionSpec = { fadeIn(tween(320)) togetherWith fadeOut(tween(220)) },
+          label = "section_background_transition"
+        ) { backgroundRes ->
+          Image(
+            painter = painterResource(id = backgroundRes),
+            contentDescription = "Header",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+          )
+        }
+        AnimatedContent(
+          targetState = sectionIllustration,
+          transitionSpec = { fadeIn(tween(320)) togetherWith fadeOut(tween(220)) },
+          label = "section_illustration_transition"
+        ) { illustrationRes ->
+          Image(
+            painter = painterResource(id = illustrationRes),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+              .align(Alignment.TopEnd)
+              .padding(top = 18.dp, end = 18.dp)
+              .size(112.dp)
+          )
+        }
         Box(
           modifier = Modifier
             .fillMaxSize()
@@ -169,14 +186,24 @@ fun HomeScreen(
         }
       }
     } else {
-      items(filteredItems, key = { it.id }) { item ->
-        EgyptItemCard(
-          item = item,
-          isBookmarked = bookmarkedIds.contains(item.id),
-          onBookmarkToggle = { onBookmarkToggle(item.id) },
-          onShareClick = { shareEgyptArticle(context, item) },
-          onClick = { onItemClick(item) }
-        )
+      item {
+        AnimatedContent(
+          targetState = filteredItems,
+          transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
+          label = "section_items_transition"
+        ) { itemsForCategory ->
+          Column {
+            itemsForCategory.forEach { item ->
+              EgyptItemCard(
+                item = item,
+                isBookmarked = bookmarkedIds.contains(item.id),
+                onBookmarkToggle = { onBookmarkToggle(item.id) },
+                onShareClick = { shareEgyptArticle(context, item) },
+                onClick = { onItemClick(item) }
+              )
+            }
+          }
+        }
       }
     }
     item {

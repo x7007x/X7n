@@ -41,7 +41,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -208,6 +211,16 @@ private fun CategoryItem(
   isSelected: Boolean,
   onClick: () -> Unit
 ) {
+  val borderColor by animateColorAsState(
+    targetValue = if (isSelected) GoldMain else GlassBorderSubtle,
+    animationSpec = tween(220),
+    label = "category_border_color"
+  )
+  val contentColor by animateColorAsState(
+    targetValue = if (isSelected) GoldMain else TextMutedColor,
+    animationSpec = tween(220),
+    label = "category_content_color"
+  )
   Column(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
@@ -217,8 +230,8 @@ private fun CategoryItem(
       .clip(RoundedCornerShape(16.dp))
       .background(if (isSelected) Color(0x33DFB24C) else Color(0x66181A22))
       .border(
-        width = if (isSelected) 1.5.dp else 1.dp,
-        color = if (isSelected) GoldMain else GlassBorderSubtle,
+        width = 1.dp,
+        color = borderColor,
         shape = RoundedCornerShape(16.dp)
       )
       .clickable(onClick = onClick)
@@ -227,14 +240,14 @@ private fun CategoryItem(
     Icon(
       imageVector = category.icon,
       contentDescription = category.title,
-      tint = if (isSelected) GoldMain else GoldMuted.copy(alpha = 0.85f),
+      tint = contentColor,
       modifier = Modifier.size(26.dp)
     )
     Spacer(modifier = Modifier.height(6.dp))
     Text(
       text = category.title,
       style = MaterialTheme.typography.labelSmall,
-      color = if (isSelected) GoldMain else TextMutedColor,
+      color = contentColor,
       textAlign = TextAlign.Center,
       fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
       maxLines = 1,

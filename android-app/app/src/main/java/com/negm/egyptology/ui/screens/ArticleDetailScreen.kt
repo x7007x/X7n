@@ -112,7 +112,7 @@ fun ArticleDetailScreen(
           IconButton(
             onClick = onBack,
             modifier = Modifier
-              .size(42.dp)
+              .size(40.dp)
               .border(1.2.dp, GlassBorderColor, CircleShape)
               .background(GlassDarkBg, CircleShape)
           ) {
@@ -128,7 +128,7 @@ fun ArticleDetailScreen(
             IconButton(
               onClick = onShareClick,
               modifier = Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .border(1.2.dp, GlassBorderColor, CircleShape)
                 .background(GlassDarkBg, CircleShape)
             ) {
@@ -143,7 +143,7 @@ fun ArticleDetailScreen(
             IconButton(
               onClick = onBookmarkToggle,
               modifier = Modifier
-                .size(42.dp)
+                .size(40.dp)
                 .border(1.2.dp, GlassBorderColor, CircleShape)
                 .background(GlassDarkBg, CircleShape)
             ) {

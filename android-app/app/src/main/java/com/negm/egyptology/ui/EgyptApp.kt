@@ -133,7 +133,11 @@ fun EgyptApp() {
             bookmarkedIds = state.bookmarkedIds.toSet(),
             onBookmarkToggle = { state.toggleBookmark(it) },
             onItemClick = { item -> state.selectedArticleId = item.id },
-            onExploreClick = { state.tab = NavTab.HOME }
+            onExploreClick = { state.tab = NavTab.HOME },
+            onShowAllClick = {
+              state.tab = NavTab.HOME
+              state.viewAllCategory = "الكل"
+            }
           )
           NavTab.MAP -> MapScreen(
             catalog = catalog,
@@ -152,7 +156,11 @@ fun EgyptApp() {
           bookmarkedIds = state.bookmarkedIds.toSet(),
           onBookmarkToggle = { state.toggleBookmark(it) },
           onItemClick = { item -> state.selectedArticleId = item.id },
-          onBack = { state.viewAllCategory = null }
+          onBack = { state.viewAllCategory = null },
+          onShowFavorites = {
+            state.viewAllCategory = null
+            state.tab = NavTab.FAVORITES
+          }
         )
       }
 

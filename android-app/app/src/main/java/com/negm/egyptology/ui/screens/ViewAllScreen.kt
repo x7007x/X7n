@@ -1,5 +1,10 @@
 package com.negm.egyptology.ui.screens
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,7 +59,8 @@ fun ViewAllScreen(
   bookmarkedIds: Set<String>,
   onBookmarkToggle: (String) -> Unit,
   onItemClick: (EgyptItem) -> Unit,
-  onBack: () -> Unit
+  onBack: () -> Unit,
+  onShowFavorites: () -> Unit
 ) {
   val context = LocalContext.current
   var selectedCategory by remember { mutableStateOf(initialCategory) }
@@ -97,7 +104,7 @@ fun ViewAllScreen(
         IconButton(
           onClick = onBack,
           modifier = Modifier
-            .size(38.dp)
+            .size(40.dp)
             .border(1.dp, GlassBorderColor, CircleShape)
             .background(GlassDarkBg, CircleShape)
         ) {
@@ -105,7 +112,7 @@ fun ViewAllScreen(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = "Back",
             tint = GoldMain,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(22.dp)
           )
         }
         Spacer(modifier = Modifier.width(12.dp))
@@ -124,12 +131,21 @@ fun ViewAllScreen(
         }
       }
 
-      Icon(
-        imageVector = Icons.Outlined.WorkspacePremium,
-        contentDescription = "Egypt Emblem",
-        tint = GoldMain,
-        modifier = Modifier.size(26.dp)
-      )
+      Row(verticalAlignment = Alignment.CenterVertically) {
+        TextButton(onClick = onShowFavorites) {
+          Text(
+            text = "المفضلة",
+            style = MaterialTheme.typography.labelLarge,
+            color = GoldMain
+          )
+        }
+        Icon(
+          imageVector = Icons.Outlined.WorkspacePremium,
+          contentDescription = "Egypt Emblem",
+          tint = GoldMain,
+          modifier = Modifier.size(26.dp)
+        )
+      }
     }
 
     SearchBarSection(query = searchQuery, onQueryChange = { searchQuery = it })
@@ -178,14 +194,24 @@ fun ViewAllScreen(
           }
         }
       } else {
-        items(displayedItems, key = { it.id }) { item ->
-          EgyptItemCard(
-            item = item,
-            isBookmarked = bookmarkedIds.contains(item.id),
-            onBookmarkToggle = { onBookmarkToggle(item.id) },
-            onShareClick = { shareEgyptArticle(context, item) },
-            onClick = { onItemClick(item) }
-          )
+        item {
+          AnimatedContent(
+            targetState = displayedItems,
+            transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
+            label = "all_items_transition"
+          ) { itemsForFilter ->
+            Column {
+              itemsForFilter.forEach { item ->
+                EgyptItemCard(
+                  item = item,
+                  isBookmarked = bookmarkedIds.contains(item.id),
+                  onBookmarkToggle = { onBookmarkToggle(item.id) },
+                  onShareClick = { shareEgyptArticle(context, item) },
+                  onClick = { onItemClick(item) }
+                )
+              }
+            }
+          }
         }
       }
       item {
