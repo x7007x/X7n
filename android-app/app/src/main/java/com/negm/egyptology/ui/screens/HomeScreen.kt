@@ -1,5 +1,6 @@
 package com.negm.egyptology.ui.screens
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,8 +24,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.negm.egyptology.R
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.CategoriesSection
@@ -69,6 +73,16 @@ fun HomeScreen(
       .fillMaxSize()
       .background(DarkPageBg)
   ) {
+    item {
+      Image(
+        painter = painterResource(id = R.drawable.home_header),
+        contentDescription = "Header",
+        contentScale = ContentScale.Crop,
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(180.dp)
+      )
+    }
     item {
       SearchBarSection(
         query = searchQuery,

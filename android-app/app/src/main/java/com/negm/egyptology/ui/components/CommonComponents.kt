@@ -39,6 +39,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -53,7 +54,9 @@ import androidx.compose.ui.graphics.drawscope.Fill
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -124,52 +127,61 @@ fun SearchBarSection(
     modifier = Modifier
       .fillMaxWidth()
       .padding(horizontal = 18.dp, vertical = 6.dp)
+      .height(50.dp)
+      .clip(RoundedCornerShape(26.dp))
+      .background(GlassDarkBg)
+      .border(1.dp, GlassBorderColor, RoundedCornerShape(26.dp)),
+    contentAlignment = Alignment.CenterStart
   ) {
-    TextField(
-      value = query,
-      onValueChange = onQueryChange,
-      singleLine = true,
-      placeholder = {
-        Text(
-          "...ابحث عن ملك، متحف، مقبرة، مجموعة",
-          color = TextMutedColor.copy(alpha = 0.75f),
-          fontSize = 12.5.sp,
-          textAlign = TextAlign.Start
-        )
-      },
-      leadingIcon = {
-        Icon(
-          imageVector = Icons.Outlined.Search,
-          contentDescription = "Search",
-          tint = GoldMain,
-          modifier = Modifier.size(21.dp)
-        )
-      },
-      trailingIcon = {
-        if (query.isNotEmpty()) {
-          IconButton(onClick = { onQueryChange("") }) {
-            Icon(
-              imageVector = Icons.Outlined.Close,
-              contentDescription = "Clear",
-              tint = TextMutedColor,
-              modifier = Modifier.size(18.dp)
-            )
-          }
-        }
-      },
-      colors = TextFieldDefaults.colors(
-        focusedContainerColor = GlassDarkBg,
-        unfocusedContainerColor = GlassDarkBg,
-        focusedIndicatorColor = Color.Transparent,
-        unfocusedIndicatorColor = Color.Transparent,
-        cursorColor = GoldMain
-      ),
-      shape = RoundedCornerShape(26.dp),
+    Row(
       modifier = Modifier
         .fillMaxWidth()
-        .height(50.dp)
-        .border(1.dp, GlassBorderColor, RoundedCornerShape(26.dp))
-    )
+        .padding(horizontal = 16.dp),
+      verticalAlignment = Alignment.CenterVertically
+    ) {
+      Icon(
+        imageVector = Icons.Outlined.Search,
+        contentDescription = "Search",
+        tint = GoldMain,
+        modifier = Modifier.size(21.dp)
+      )
+      Spacer(modifier = Modifier.width(10.dp))
+
+      Box(modifier = Modifier.weight(1f)) {
+        if (query.isEmpty()) {
+          Text(
+            "...ابحث عن ملك، متحف، مقبرة، مجموعة",
+            color = TextMutedColor.copy(alpha = 0.75f),
+            fontSize = 13.sp,
+            maxLines = 1,
+            modifier = Modifier.align(Alignment.CenterStart)
+          )
+        }
+        BasicTextField(
+          value = query,
+          onValueChange = onQueryChange,
+          singleLine = true,
+          textStyle = TextStyle(
+            color = BodyTextLight,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Start
+          ),
+          cursorBrush = SolidColor(GoldMain),
+          modifier = Modifier.fillMaxWidth()
+        )
+      }
+
+      if (query.isNotEmpty()) {
+        IconButton(onClick = { onQueryChange("") }, modifier = Modifier.size(28.dp)) {
+          Icon(
+            imageVector = Icons.Outlined.Close,
+            contentDescription = "Clear",
+            tint = TextMutedColor,
+            modifier = Modifier.size(18.dp)
+          )
+        }
+      }
+    }
   }
 }
 

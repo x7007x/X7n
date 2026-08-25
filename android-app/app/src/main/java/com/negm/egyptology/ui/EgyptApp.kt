@@ -1,11 +1,15 @@
 package com.negm.egyptology.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.togetherWith
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -90,14 +94,37 @@ fun EgyptApp() {
       )
     }
   ) { innerPadding ->
-    Box(
+    // Animated movement between the main pages (RTL-aware slide + fade).
+    AnimatedContent(
+      targetState = state.tab,
       modifier = Modifier
         .fillMaxSize()
-        .padding(innerPadding)
-        .background(DarkPageBg)
-    ) {
-      // Base tab screen (instant swap on tab change)
-      when (state.tab) {
+        .padding(innerPadding),
+      transitionSpec = {
+        val from = tabsOrder.indexOf(initialState).let { if (it < 0) 0 else it }
+        val to = tabsOrder.indexOf(targetState).let { if (it < 0) 0 else it }
+        // RTL: forward movement enters from the left edge.
+        val direction = if (to >= from) -1 else 1
+        (
+          slideInHorizontally(
+            initialOffsetX = { direction * it / 10 },
+            animationSpec = tween(260, easing = FastOutSlowInEasing)
+          ) + fadeIn(tween(220))
+          ) togetherWith (
+          slideOutHorizontally(
+            targetOffsetX = { -direction * it / 10 },
+            animationSpec = tween(220)
+          ) + fadeOut(tween(170))
+          )
+      },
+      label = "tab_transition"
+    ) { currentTab ->
+      Box(
+        modifier = Modifier
+          .fillMaxSize()
+          .background(DarkPageBg)
+      ) {
+      when (currentTab) {
         NavTab.HOME -> HomeScreen(
           catalog = catalog,
           bookmarkedIds = state.bookmarkedIds.toSet(),
@@ -119,8 +146,10 @@ fun EgyptApp() {
         NavTab.QUIZ -> QuizScreen(catalog)
         NavTab.MORE -> MoreScreen(catalog)
       }
+      }
+    }
 
-      // "View all" replaces the home list instantly while staying under the nav bar
+    // "View all" replaces the home list instantly while staying under the nav bar
       state.viewAllCategory?.let { category ->
         ViewAllScreen(
           catalog = catalog,
@@ -161,3 +190,5 @@ fun EgyptApp() {
     }
   }
 }
+
+private val tabsOrder = listOf(NavTab.MAP, NavTab.FAVORITES, NavTab.HOME, NavTab.QUIZ, NavTab.MORE)

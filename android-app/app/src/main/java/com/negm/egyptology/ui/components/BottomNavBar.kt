@@ -6,7 +6,6 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
 import androidx.compose.material.icons.filled.Favorite
@@ -38,7 +36,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -127,11 +124,16 @@ fun CurvedBottomNavigation(
       val archHalfWidth = itemWidth * 0.42f
       val archPeakHeight = 14.dp.toPx()
 
+      val cornerR = 30.dp.toPx()
       val path = Path().apply {
-        moveTo(0f, barH)
-        // Start directly with the top edge; side borders are straight lines so
-        // nothing bleeds past the frame at the outer edges.
-        lineTo(0f, 0f)
+        moveTo(0f, barH - cornerR)
+        lineTo(0f, cornerR)
+        arcTo(
+          rect = Rect(0f, 0f, cornerR * 2, cornerR * 2),
+          startAngleDegrees = 180f,
+          sweepAngleDegrees = 90f,
+          forceMoveTo = false
+        )
         lineTo(activeCenterX - archHalfWidth, 0f)
         // Smooth cubic arch rising around the active tab
         cubicTo(
@@ -144,8 +146,27 @@ fun CurvedBottomNavigation(
           activeCenterX + archHalfWidth * 0.45f, 0f,
           activeCenterX + archHalfWidth, 0f
         )
-        lineTo(w, 0f)
-        lineTo(w, barH)
+        lineTo(w - cornerR, 0f)
+        arcTo(
+          rect = Rect(w - cornerR * 2, 0f, w, cornerR * 2),
+          startAngleDegrees = 270f,
+          sweepAngleDegrees = 90f,
+          forceMoveTo = false
+        )
+        lineTo(w, barH - cornerR)
+        arcTo(
+          rect = Rect(w - cornerR * 2, barH - cornerR * 2, w, barH),
+          startAngleDegrees = 0f,
+          sweepAngleDegrees = 90f,
+          forceMoveTo = false
+        )
+        lineTo(cornerR, barH)
+        arcTo(
+          rect = Rect(0f, barH - cornerR * 2, cornerR * 2, barH),
+          startAngleDegrees = 90f,
+          sweepAngleDegrees = 90f,
+          forceMoveTo = false
+        )
         close()
       }
 
@@ -216,23 +237,6 @@ fun CurvedBottomNavigation(
             }
         ) {
           Box(contentAlignment = Alignment.Center) {
-            if (isSelected) {
-              // Soft golden halo riding behind the lifted icon
-              Box(
-                modifier = Modifier
-                  .size(46.dp)
-                  .graphicsLayer {
-                    translationY = -iconLift * 14.dp.toPx()
-                    alpha = iconLift * 0.35f
-                  }
-                  .clip(CircleShape)
-                  .background(
-                    Brush.radialGradient(
-                      listOf(GoldMain.copy(alpha = 0.85f), Color.Transparent)
-                    )
-                  )
-              )
-            }
             Icon(
               imageVector = if (isSelected) tab.activeIcon else tab.inactiveIcon,
               contentDescription = tab.label,
@@ -247,14 +251,14 @@ fun CurvedBottomNavigation(
             )
           }
 
-          Spacer(modifier = Modifier.height(if (isSelected) 15.dp else 5.dp))
+          Spacer(modifier = Modifier.height(6.dp))
 
           Text(
             text = tab.label,
             style = MaterialTheme.typography.labelSmall,
             color = tint,
             fontSize = 10.sp,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = FontWeight.Medium,
             maxLines = 1
           )
         }
