@@ -90,13 +90,13 @@ fun MapScreen(
       Spacer(modifier = Modifier.width(12.dp))
       Column {
         Text(
-          text = "خريطة المعالم الأثرية",
+          text = "خريطة مصر الأثرية",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
           color = GoldMain
         )
         Text(
-          text = "المعالم والمواقع الجغرافية على طول النيل",
+          text = "المعالم والمواقع على طول النيل",
           style = MaterialTheme.typography.bodySmall,
           color = TextMutedColor
         )

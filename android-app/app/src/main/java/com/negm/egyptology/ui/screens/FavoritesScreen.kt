@@ -124,13 +124,13 @@ fun FavoritesScreen(
         Spacer(modifier = Modifier.width(12.dp))
         Column {
           Text(
-            text = "قائمة المفضلة",
+            text = "المفضلة",
             style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = GoldMain
           )
           Text(
-            text = "السجلات المحفوظة للرجوع السريع",
+            text = "العناصر المحفوظة للرجوع السريع",
             style = MaterialTheme.typography.bodySmall,
             color = TextMutedColor
           )

@@ -85,7 +85,7 @@ fun QuizScreen(catalog: Catalog) {
       Spacer(modifier = Modifier.width(12.dp))
       Column {
         Text(
-          text = "اختبارات الحضارة المصرية",
+          text = "اختبر معرفتك",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
           color = GoldMain

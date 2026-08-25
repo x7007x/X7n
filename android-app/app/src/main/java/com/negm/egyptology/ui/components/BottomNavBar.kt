@@ -90,13 +90,13 @@ fun CurvedBottomNavigation(
   val barHeight = 70.dp
   val archRoom = 20.dp // transparent headroom the rising arch lives in
 
-  val springSpec = spring<Float>(
-    dampingRatio = Spring.DampingRatioMediumBouncy,
-    stiffness = Spring.StiffnessLow
+  val selectionSpec = tween<Float>(
+    durationMillis = 280,
+    easing = androidx.compose.animation.core.FastOutSlowInEasing
   )
   val animatedIndex by animateFloatAsState(
     targetValue = selectedIndex.toFloat(),
-    animationSpec = springSpec,
+    animationSpec = selectionSpec,
     label = "nav_active_index"
   )
 
@@ -122,8 +122,8 @@ fun CurvedBottomNavigation(
 
       // Exact horizontal center of the selected tab (RTL: index 0 = right edge).
       val activeCenterX = w - itemWidth * (animatedIndex + 0.5f)
-      val archHalfWidth = itemWidth * 0.42f
-      val archPeakHeight = 14.dp.toPx()
+      val archHalfWidth = itemWidth * 0.34f
+      val archPeakHeight = 10.dp.toPx()
 
       val cornerR = barH / 2f // fully rounded pill frame
       val path = Path().apply {
@@ -206,13 +206,13 @@ fun CurvedBottomNavigation(
 
         // Only the icon reacts: it grows and lifts slightly higher.
         val iconScale by animateFloatAsState(
-          targetValue = if (isSelected) 1.30f else 1f,
-          animationSpec = if (isSelected) springSpec else tween(200),
+          targetValue = if (isSelected) 1.12f else 1f,
+          animationSpec = if (isSelected) selectionSpec else tween(200),
           label = "nav_icon_scale_$index"
         )
         val iconLift by animateFloatAsState(
-          targetValue = if (isSelected) 1f else 0f,
-          animationSpec = if (isSelected) springSpec else tween(220),
+          targetValue = if (isSelected) 0.5f else 0f,
+          animationSpec = if (isSelected) selectionSpec else tween(220),
           label = "nav_icon_lift_$index"
         )
         val tint by animateColorAsState(
@@ -247,7 +247,7 @@ fun CurvedBottomNavigation(
                 .graphicsLayer {
                   scaleX = iconScale
                   scaleY = iconScale
-                  translationY = -iconLift * 14.dp.toPx()
+                  translationY = -iconLift * 8.dp.toPx()
                 }
             )
           }

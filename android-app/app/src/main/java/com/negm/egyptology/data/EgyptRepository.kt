@@ -139,13 +139,12 @@ object EgyptRepository {
   }
 
   private fun imageFor(name: String) = when (name) {
-    "ramses" -> R.drawable.ramses_pharaoh_1787516924600
-    "pharaoh" -> R.drawable.pharaoh_3_1787516935888
-    "heroPharaoh" -> R.drawable.hero_pharaoh_1787516913716
-    "hieroglyphs" -> R.drawable.hero_egypt_hieroglyphics_1787518543829
-    "museum" -> R.drawable.museum_egypt_1787518889790
-    "tomb" -> R.drawable.tomb_egypt_1787518916344
-    "pyramids" -> R.drawable.pyramids_egypt_1787518903667
-    else -> R.drawable.app_logo
+    "kings" -> R.drawable.section_kings_background
+    "museums" -> R.drawable.section_museums_background
+    "tombs" -> R.drawable.section_museums_background
+    "pyramids" -> R.drawable.section_map_background
+    "artifacts" -> R.drawable.section_collections_background
+    "sites" -> R.drawable.section_map_background
+    else -> R.drawable.section_sources_background
   }
 }

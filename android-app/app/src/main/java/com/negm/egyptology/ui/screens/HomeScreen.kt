@@ -69,6 +69,24 @@ fun HomeScreen(
   }
 
   val categoryMeta = catalog.categoryMeta.firstOrNull { it.title == selectedCategory }
+  val sectionBackground = when (selectedCategory) {
+    "الملوك" -> R.drawable.section_kings_background
+    "المتاحف" -> R.drawable.section_museums_background
+    "المقابر" -> R.drawable.section_museums_background
+    "المجموعات الهرمية" -> R.drawable.section_map_background
+    "الآثار" -> R.drawable.section_collections_background
+    "المواقع الأثرية" -> R.drawable.section_map_background
+    else -> R.drawable.section_sources_background
+  }
+  val sectionIllustration = when (selectedCategory) {
+    "الملوك" -> R.drawable.section_kings_illustration
+    "المتاحف" -> R.drawable.section_museums_illustration
+    "المقابر" -> R.drawable.section_museums_illustration
+    "المجموعات الهرمية" -> R.drawable.section_map_illustration
+    "الآثار" -> R.drawable.section_collections_illustration
+    "المواقع الأثرية" -> R.drawable.section_map_illustration
+    else -> R.drawable.section_sources_illustration
+  }
 
   LazyColumn(
     modifier = Modifier
@@ -78,10 +96,19 @@ fun HomeScreen(
     item {
       Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
         Image(
-          painter = painterResource(id = R.drawable.home_header),
+          painter = painterResource(id = sectionBackground),
           contentDescription = "Header",
           contentScale = ContentScale.Crop,
           modifier = Modifier.fillMaxSize()
+        )
+        Image(
+          painter = painterResource(id = sectionIllustration),
+          contentDescription = null,
+          contentScale = ContentScale.Fit,
+          modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 18.dp, end = 18.dp)
+            .size(112.dp)
         )
         Box(
           modifier = Modifier

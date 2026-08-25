@@ -64,13 +64,13 @@ fun MoreScreen(catalog: Catalog) {
       Spacer(modifier = Modifier.width(12.dp))
       Column {
         Text(
-          text = "المزيد من المصادر والمراجع",
+          text = "المصادر والمراجع",
           style = MaterialTheme.typography.titleLarge,
           fontWeight = FontWeight.Bold,
           color = GoldMain
         )
         Text(
-          text = "المكتبة العلمية الرقمية لعلم المصريات",
+          text = "مراجع علم المصريات",
           style = MaterialTheme.typography.bodySmall,
           color = TextMutedColor
         )

@@ -18,28 +18,28 @@
     { "title": "المزيد",           "subtitle": "كل ما يتعلق بالحضارة واللغة والتاريخ المصري",         "icon": "grid" }
   ],
   "items": [
-    { "id": "king_ramses2",   "category": "الملوك", "title": "رمسيس الثاني",              "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1213 - 1279 ق.م",  "image": "ramses",   "icon": "calendar" },
-    { "id": "king_merneptah", "category": "الملوك", "title": "مرنبتاح",                   "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1213 - 1203 ق.م",  "image": "ramses",   "icon": "calendar" },
-    { "id": "king_seti1",     "category": "الملوك", "title": "سيتي الأول",                "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1290 - 1279 ق.م",  "image": "pharaoh",  "icon": "calendar" },
-    { "id": "king_amenhotep3","category": "الملوك", "title": "أمنحتب الثالث",             "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1391 - 1353 ق.م",  "image": "pharaoh",  "icon": "calendar" },
-    { "id": "king_thutmose3", "category": "الملوك", "title": "تحتمس الثالث",              "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1479 - 1425 ق.م",  "image": "heroPharaoh", "icon": "calendar" },
-    { "id": "king_tut",       "category": "الملوك", "title": "توت عنخ آمون",              "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1332 - 1323 ق.م",  "image": "hieroglyphs", "icon": "calendar" },
+    { "id": "king_ramses2",   "category": "الملوك", "title": "رمسيس الثاني",              "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1213 - 1279 ق.م",  "image": "kings",   "icon": "calendar" },
+    { "id": "king_merneptah", "category": "الملوك", "title": "مرنبتاح",                   "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1213 - 1203 ق.م",  "image": "kings",   "icon": "calendar" },
+    { "id": "king_seti1",     "category": "الملوك", "title": "سيتي الأول",                "tag1": "الأسرة 19",  "tag2": "العصر الحديث",  "subtitle": "1290 - 1279 ق.م",  "image": "kings",  "icon": "calendar" },
+    { "id": "king_amenhotep3","category": "الملوك", "title": "أمنحتب الثالث",             "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1391 - 1353 ق.م",  "image": "kings",  "icon": "calendar" },
+    { "id": "king_thutmose3", "category": "الملوك", "title": "تحتمس الثالث",              "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1479 - 1425 ق.م",  "image": "kings", "icon": "calendar" },
+    { "id": "king_tut",       "category": "الملوك", "title": "توت عنخ آمون",              "tag1": "الأسرة 18",  "tag2": "العصر الحديث",  "subtitle": "1332 - 1323 ق.م",  "image": "kings", "icon": "calendar" },
 
-    { "id": "museum_gem",     "category": "المتاحف", "title": "المتحف المصري الكبير",      "tag1": "الجيزة",     "tag2": "أكبر متحف بالعالم", "subtitle": "كنوز الملك الذهبي توت عنخ آمون", "image": "museum", "icon": "location" },
-    { "id": "museum_nmec",    "category": "المتاحف", "title": "متحف الحضارة (NMEC)",       "tag1": "الفسطاط",    "tag2": "متحف شامل",     "subtitle": "قاعة المومياوات الملكية المهيبة", "image": "museum", "icon": "location" },
-    { "id": "museum_tahrir",  "category": "المتاحف", "title": "المتحف المصري بالتحرير",    "tag1": "القاهرة",    "tag2": "تأسس 1902 م",   "subtitle": "أعرق صرح أثري بالشرق الأوسط",     "image": "museum", "icon": "location" },
+    { "id": "museum_gem",     "category": "المتاحف", "title": "المتحف المصري الكبير",      "tag1": "الجيزة",     "tag2": "أكبر متحف بالعالم", "subtitle": "كنوز الملك الذهبي توت عنخ آمون", "image": "museums", "icon": "location" },
+    { "id": "museum_nmec",    "category": "المتاحف", "title": "متحف الحضارة (NMEC)",       "tag1": "الفسطاط",    "tag2": "متحف شامل",     "subtitle": "قاعة المومياوات الملكية المهيبة", "image": "museums", "icon": "location" },
+    { "id": "museum_tahrir",  "category": "المتاحف", "title": "المتحف المصري بالتحرير",    "tag1": "القاهرة",    "tag2": "تأسس 1902 م",   "subtitle": "أعرق صرح أثري بالشرق الأوسط",     "image": "museums", "icon": "location" },
 
-    { "id": "tomb_tut",       "category": "المقابر", "title": "مقبرة توت عنخ آمون (KV62)", "tag1": "وادي الملوك","tag2": "اكتشاف 1922",   "subtitle": "المقبرة الوحيدة المكتشفة كاملة",   "image": "tomb",   "icon": "location" },
-    { "id": "tomb_seti1",     "category": "المقابر", "title": "مقبرة سيتي الأول (KV17)",   "tag1": "وادي الملوك","tag2": "أطول مقبرة",    "subtitle": "أعظم النقوش الجدارية الملونة",     "image": "tomb",   "icon": "location" },
+    { "id": "tomb_tut",       "category": "المقابر", "title": "مقبرة توت عنخ آمون (KV62)", "tag1": "وادي الملوك","tag2": "اكتشاف 1922",   "subtitle": "المقبرة الوحيدة المكتشفة كاملة",   "image": "tombs",   "icon": "location" },
+    { "id": "tomb_seti1",     "category": "المقابر", "title": "مقبرة سيتي الأول (KV17)",   "tag1": "وادي الملوك","tag2": "أطول مقبرة",    "subtitle": "أعظم النقوش الجدارية الملونة",     "image": "tombs",   "icon": "location" },
 
     { "id": "pyr_khufu",      "category": "المجموعات الهرمية", "title": "الهرم الأكبر (خوفو)", "tag1": "الجيزة", "tag2": "الأسرة 4",  "subtitle": "عجيبة العالم القديم الباقية",  "image": "pyramids", "icon": "location" },
     { "id": "pyr_djoser",     "category": "المجموعات الهرمية", "title": "هرم زوسر المدرج",     "tag1": "سقارة",  "tag2": "الأسرة 3",  "subtitle": "أول بناء حجري ضخم في التاريخ", "image": "pyramids", "icon": "location" },
 
-    { "id": "art_mask",       "category": "الآثار", "title": "قناع توت عنخ آمون الذهبي",  "tag1": "ذهب خالص",   "tag2": "11 كجم",        "subtitle": "رمز الحضارة الفرعونية الخالد",     "image": "heroPharaoh", "icon": "premium" },
-    { "id": "art_rosetta",    "category": "الآثار", "title": "حجر رشيد",                  "tag1": "196 ق.م",    "tag2": "حجر البازلت",   "subtitle": "مفتاح فك رموز اللغة الهيروغليفية", "image": "hieroglyphs", "icon": "book" },
+    { "id": "art_mask",       "category": "الآثار", "title": "قناع توت عنخ آمون الذهبي",  "tag1": "ذهب خالص",   "tag2": "11 كجم",        "subtitle": "رمز الحضارة الفرعونية الخالد",     "image": "artifacts", "icon": "premium" },
+    { "id": "art_rosetta",    "category": "الآثار", "title": "حجر رشيد",                  "tag1": "196 ق.م",    "tag2": "حجر البازلت",   "subtitle": "مفتاح فك رموز اللغة الهيروغليفية", "image": "artifacts", "icon": "book" },
 
-    { "id": "site_karnak",    "category": "المواقع الأثرية", "title": "مجمع معابد الكرنك",     "tag1": "الأقصر", "tag2": "صرح آمون",       "subtitle": "أكبر دور عبادة بالعالم القديم", "image": "museum",  "icon": "location" },
-    { "id": "site_abusimbel", "category": "المواقع الأثرية", "title": "معبد أبو سمبل الكبير",  "tag1": "أسوان",  "tag2": "رمسيس الثاني",   "subtitle": "معجزة تعامد الشمس الفريدة",     "image": "ramses",  "icon": "location" }
+    { "id": "site_karnak",    "category": "المواقع الأثرية", "title": "مجمع معابد الكرنك",     "tag1": "الأقصر", "tag2": "صرح آمون",       "subtitle": "أكبر دور عبادة بالعالم القديم", "image": "sites",  "icon": "location" },
+    { "id": "site_abusimbel", "category": "المواقع الأثرية", "title": "معبد أبو سمبل الكبير",  "tag1": "أسوان",  "tag2": "رمسيس الثاني",   "subtitle": "معجزة تعامد الشمس الفريدة",     "image": "sites",  "icon": "location" }
   ],
   "articles": {
     "king_ramses2": {
