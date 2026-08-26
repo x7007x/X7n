@@ -371,7 +371,7 @@ fun EgyptItemCard(
         modifier = Modifier
           .width(104.dp)
           .fillMaxHeight()
-          .padding(vertical = 8.dp, end = 8.dp)
+          .padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
           .clip(RoundedCornerShape(13.dp))
       ) {
         Image(
