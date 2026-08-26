@@ -59,6 +59,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Category
 import com.negm.egyptology.data.CategoryMeta
 import com.negm.egyptology.data.EgyptItem
@@ -183,20 +184,25 @@ fun CategoriesSection(
   selectedCategory: String,
   onCategorySelect: (String) -> Unit
 ) {
-  LazyRow(
-    modifier = Modifier
-      .fillMaxWidth()
-      .padding(vertical = 12.dp),
-    contentPadding = PaddingValues(horizontal = 18.dp),
-    horizontalArrangement = Arrangement.spacedBy(10.dp)
+  Column(
+    modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
+    verticalArrangement = Arrangement.spacedBy(10.dp)
   ) {
-    items(categories) { category ->
-      val isSelected = category.title == selectedCategory
-      CategoryItem(
-        category = category,
-        isSelected = isSelected,
-        onClick = { onCategorySelect(category.title) }
-      )
+    categories.chunked(3).forEach { rowCategories ->
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+      ) {
+        rowCategories.forEach { category ->
+          CategoryItem(
+            category = category,
+            isSelected = category.title == selectedCategory,
+            onClick = { onCategorySelect(category.title) },
+            modifier = Modifier.weight(1f)
+          )
+        }
+        repeat(3 - rowCategories.size) { Spacer(Modifier.weight(1f)) }
+      }
     }
   }
 }
@@ -205,7 +211,8 @@ fun CategoriesSection(
 private fun CategoryItem(
   category: Category,
   isSelected: Boolean,
-  onClick: () -> Unit
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier
 ) {
   val borderColor by animateColorAsState(
     targetValue = if (isSelected) GoldMain else GlassBorderSubtle,
@@ -221,8 +228,8 @@ private fun CategoryItem(
     horizontalAlignment = Alignment.CenterHorizontally,
     verticalArrangement = Arrangement.Center,
     modifier = Modifier
-      .width(72.dp)
-      .height(82.dp)
+      .then(modifier)
+      .height(104.dp)
       .clip(RoundedCornerShape(16.dp))
       .background(if (isSelected) Color(0x33DFB24C) else Color(0x66181A22))
       .border(
@@ -233,13 +240,14 @@ private fun CategoryItem(
       .clickable(onClick = onClick)
       .padding(4.dp)
   ) {
-    Icon(
-      imageVector = category.icon,
-      contentDescription = category.title,
-      tint = contentColor,
-      modifier = Modifier.size(26.dp)
+    Text(
+      text = hieroglyphFor(category.title),
+      style = MaterialTheme.typography.headlineSmall,
+      color = contentColor,
+      fontSize = 30.sp,
+      maxLines = 1
     )
-    Spacer(modifier = Modifier.height(6.dp))
+    Spacer(modifier = Modifier.height(7.dp))
     Text(
       text = category.title,
       style = MaterialTheme.typography.labelSmall,
@@ -250,6 +258,18 @@ private fun CategoryItem(
       overflow = TextOverflow.Ellipsis
     )
   }
+}
+
+private fun hieroglyphFor(title: String): String = when {
+  title.contains("ملك") -> "𓀷"
+  title.contains("إله") || title.contains("آله") -> "𓀭"
+  title.contains("متحف") || title.contains("معبد") -> "𓉢"
+  title.contains("مقبر") || title.contains("دفن") -> "𓁶"
+  title.contains("هرم") -> "𓍋"
+  title.contains("آثار") || title.contains("قطع") -> "𓏏"
+  title.contains("موقع") || title.contains("حضار") -> "𓂀"
+  title.contains("كتابة") || title.contains("مصادر") -> "𓏞"
+  else -> "𓂀"
 }
 
 @Composable
