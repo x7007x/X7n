@@ -71,6 +71,7 @@ import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GlassDarkBg
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.GoldMuted
+import com.negm.egyptology.ui.theme.SecondarySurface
 import com.negm.egyptology.ui.theme.TextMutedColor
 
 // -------------------------------------------------------------

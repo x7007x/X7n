@@ -47,6 +47,7 @@ import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GlassBorderSubtle
 import com.negm.egyptology.ui.theme.GlassCardBg
 import com.negm.egyptology.ui.theme.GlassDarkBg
+import com.negm.egyptology.ui.theme.GoldLightAccent
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
 
