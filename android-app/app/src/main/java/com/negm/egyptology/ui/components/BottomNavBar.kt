@@ -41,7 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.translate
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -50,165 +49,99 @@ import androidx.compose.ui.unit.dp
 import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
+import kotlin.math.min
 
-enum class NavTab(
-  val label: String,
-  val activeIcon: ImageVector,
-  val inactiveIcon: ImageVector
-) {
+enum class NavTab(val label: String, val activeIcon: ImageVector, val inactiveIcon: ImageVector) {
   MAP("خريطة مصر", Icons.Outlined.Explore, Icons.Outlined.Explore),
   FAVORITES("المفضلة", Icons.Filled.Favorite, Icons.Outlined.FavoriteBorder),
   HOME("الرئيسية", Icons.Filled.Home, Icons.Outlined.Home),
   QUIZ("الاختبارات", Icons.Filled.Assignment, Icons.Outlined.Assignment),
-  MORE("المزيد", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz);
-
-  companion object {
-    fun fromLabel(label: String): NavTab =
-      entries.firstOrNull { it.label == label } ?: HOME
-  }
+  MORE("المزيد", Icons.Filled.MoreHoriz, Icons.Outlined.MoreHoriz)
 }
 
 @Composable
-fun CurvedBottomNavigation(
-  selectedTab: NavTab,
-  onTabSelected: (NavTab) -> Unit
-) {
-  val tabs = NavTab.entries.toList()
+fun CurvedBottomNavigation(selectedTab: NavTab, onTabSelected: (NavTab) -> Unit) {
+  val tabs = NavTab.entries
   val haptics = LocalHapticFeedback.current
   val selectedIndex = tabs.indexOf(selectedTab).coerceAtLeast(0)
   val barHeight = 70.dp
   val archRoom = 18.dp
-  val selectionSpec = tween<Float>(
-    durationMillis = 280,
-    easing = FastOutSlowInEasing
-  )
-  val animatedIndex by animateFloatAsState(
-    targetValue = selectedIndex.toFloat(),
-    animationSpec = selectionSpec,
-    label = "nav_active_index"
-  )
+  val animation = tween<Float>(280, easing = FastOutSlowInEasing)
+  val animatedIndex by animateFloatAsState(selectedIndex.toFloat(), animation, label = "navIndex")
 
   Box(
-    modifier = Modifier
-      .fillMaxWidth()
-      .navigationBarsPadding()
-      .padding(horizontal = 14.dp, vertical = 12.dp),
+    modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 14.dp, vertical = 12.dp),
     contentAlignment = Alignment.BottomCenter
   ) {
-    Canvas(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(barHeight + archRoom)
-    ) {
+    Canvas(Modifier.fillMaxWidth().height(barHeight + archRoom)) {
       val width = size.width
       val height = barHeight.toPx()
       val room = archRoom.toPx()
-      val itemWidth = width / tabs.size
-      val cornerRadius = height / 2f
-      val bumpHalfWidth = (itemWidth * 0.32f).coerceAtMost((width - cornerRadius * 2f) / 2f)
-      val requestedCenter = width - itemWidth * (animatedIndex + 0.5f)
-      val center = requestedCenter.coerceIn(
-        cornerRadius + bumpHalfWidth,
-        width - cornerRadius - bumpHalfWidth
+      val slot = width / tabs.size
+      val corner = min(height / 2f, width / 14f)
+      val bumpRadius = min(slot * 0.22f, room * 0.92f)
+      val center = (width - slot * (animatedIndex + 0.5f)).coerceIn(
+        corner + bumpRadius + 1.dp.toPx(),
+        width - corner - bumpRadius - 1.dp.toPx()
       )
-      val start = center - bumpHalfWidth
-      val end = center + bumpHalfWidth
-      val bumpHeight = 10.dp.toPx()
-      val quarterControl = bumpHalfWidth * 0.5522848f
+      val left = center - bumpRadius
+      val right = center + bumpRadius
+      val bumpHeight = bumpRadius * 0.72f
+      val circleControl = bumpRadius * 0.5522848f
       val path = Path().apply {
-        moveTo(0f, height - cornerRadius)
-        lineTo(0f, cornerRadius)
-        arcTo(Rect(0f, 0f, cornerRadius * 2f, cornerRadius * 2f), 180f, 90f, false)
-        lineTo(start, 0f)
-        cubicTo(start + quarterControl, 0f, center - quarterControl, -bumpHeight, center, -bumpHeight)
-        cubicTo(center + quarterControl, -bumpHeight, end - quarterControl, 0f, end, 0f)
-        lineTo(width - cornerRadius, 0f)
-        arcTo(Rect(width - cornerRadius * 2f, 0f, width, cornerRadius * 2f), 270f, 90f, false)
-        lineTo(width, height - cornerRadius)
-        arcTo(Rect(width - cornerRadius * 2f, height - cornerRadius * 2f, width, height), 0f, 90f, false)
-        lineTo(cornerRadius, height)
-        arcTo(Rect(0f, height - cornerRadius * 2f, cornerRadius * 2f, height), 90f, 90f, false)
+        moveTo(0f, height - corner)
+        lineTo(0f, corner)
+        arcTo(Rect(0f, 0f, corner * 2f, corner * 2f), 180f, 90f, false)
+        lineTo(left, 0f)
+        cubicTo(left + circleControl, 0f, center - circleControl, -bumpHeight, center, -bumpHeight)
+        cubicTo(center + circleControl, -bumpHeight, right - circleControl, 0f, right, 0f)
+        lineTo(width - corner, 0f)
+        arcTo(Rect(width - corner * 2f, 0f, width, corner * 2f), 270f, 90f, false)
+        lineTo(width, height - corner)
+        arcTo(Rect(width - corner * 2f, height - corner * 2f, width, height), 0f, 90f, false)
+        lineTo(corner, height)
+        arcTo(Rect(0f, height - corner * 2f, corner * 2f, height), 90f, 90f, false)
         close()
       }
-
       translate(top = room) {
         drawPath(path, color = Color(0xF214161E))
         drawPath(
-          path = path,
-          brush = Brush.linearGradient(
-            colors = listOf(
-              GoldMain.copy(alpha = 0.65f),
-              GlassBorderColor,
-              GoldMain.copy(alpha = 0.65f)
-            )
-          ),
-          style = Stroke(width = 1.4.dp.toPx())
+          path,
+          brush = Brush.linearGradient(listOf(GoldMain.copy(alpha = 0.72f), GlassBorderColor, GoldMain.copy(alpha = 0.72f))),
+          style = Stroke(width = 1.35.dp.toPx())
         )
       }
     }
 
     Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .height(barHeight)
-        .align(Alignment.BottomCenter),
+      modifier = Modifier.fillMaxWidth().height(barHeight).align(Alignment.BottomCenter),
       horizontalArrangement = Arrangement.SpaceEvenly,
       verticalAlignment = Alignment.CenterVertically
     ) {
       tabs.forEachIndexed { index, tab ->
-        val isSelected = tab == selectedTab
-        val iconScale by animateFloatAsState(
-          targetValue = if (isSelected) 1.08f else 1f,
-          animationSpec = if (isSelected) selectionSpec else tween(200),
-          label = "nav_icon_scale_$index"
-        )
-        val iconLift by animateFloatAsState(
-          targetValue = if (isSelected) 0.35f else 0f,
-          animationSpec = if (isSelected) selectionSpec else tween(220),
-          label = "nav_icon_lift_$index"
-        )
-        val tint by animateColorAsState(
-          targetValue = if (isSelected) GoldMain else TextMutedColor.copy(alpha = 0.75f),
-          animationSpec = tween(220),
-          label = "nav_tint_$index"
-        )
-
+        val selected = tab == selectedTab
+        val tint by animateColorAsState(if (selected) GoldMain else TextMutedColor.copy(alpha = 0.75f), tween(220), label = "navTint$index")
         Column(
-          horizontalAlignment = Alignment.CenterHorizontally,
-          verticalArrangement = Arrangement.Center,
-          modifier = Modifier
-            .weight(1f)
-            .fillMaxHeight()
-            .clickable(
-              interactionSource = remember { MutableInteractionSource() },
-              indication = null
-            ) {
-              if (!isSelected) {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                onTabSelected(tab)
-              }
+          modifier = Modifier.weight(1f).fillMaxHeight().clickable(
+            interactionSource = remember { MutableInteractionSource() },
+            indication = null
+          ) {
+            if (!selected) {
+              haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+              onTabSelected(tab)
             }
+          },
+          horizontalAlignment = Alignment.CenterHorizontally,
+          verticalArrangement = Arrangement.Center
         ) {
           Icon(
-            imageVector = if (isSelected) tab.activeIcon else tab.inactiveIcon,
+            imageVector = if (selected) tab.activeIcon else tab.inactiveIcon,
             contentDescription = tab.label,
             tint = tint,
-            modifier = Modifier
-              .size(24.dp)
-              .graphicsLayer {
-                scaleX = iconScale
-                scaleY = iconScale
-                translationY = -iconLift * 7.dp.toPx()
-              }
+            modifier = Modifier.size(22.dp)
           )
-          androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(5.dp))
-          Text(
-            text = tab.label,
-            style = MaterialTheme.typography.labelSmall,
-            color = tint,
-            fontWeight = FontWeight.Medium,
-            maxLines = 1
-          )
+          androidx.compose.foundation.layout.Spacer(Modifier.height(5.dp))
+          Text(tab.label, style = MaterialTheme.typography.labelSmall, color = tint, fontWeight = FontWeight.Medium, maxLines = 1)
         }
       }
     }

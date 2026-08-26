@@ -322,50 +322,21 @@ fun EgyptItemCard(
   onClick: () -> Unit
 ) {
   Card(
-    shape = RoundedCornerShape(20.dp),
+    shape = RoundedCornerShape(18.dp),
     colors = CardDefaults.cardColors(containerColor = GlassCardBg),
-    border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorderColor),
+    border = androidx.compose.foundation.BorderStroke(1.dp, GlassBorderColor.copy(alpha = 0.82f)),
     modifier = Modifier
       .fillMaxWidth()
       .padding(horizontal = 18.dp, vertical = 6.dp)
-      .height(138.dp)
+      .height(132.dp)
       .clickable(onClick = onClick)
   ) {
-    Row(
-      modifier = Modifier.fillMaxSize(),
-      verticalAlignment = Alignment.CenterVertically
-    ) {
-      Box(
-        modifier = Modifier
-          .weight(0.35f)
-          .fillMaxHeight(),
-        contentAlignment = Alignment.Center
-      ) {
-        Image(
-          painter = painterResource(id = item.imageRes),
-          contentDescription = item.title,
-          contentScale = ContentScale.Crop,
-          modifier = Modifier
-            .fillMaxHeight()
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp))
-        )
-        Box(
-          modifier = Modifier
-            .fillMaxSize()
-            .background(
-              Brush.horizontalGradient(
-                colors = listOf(Color.Transparent, GlassCardBg.copy(alpha = 0.75f))
-              )
-            )
-        )
-      }
-
+    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
       Column(
         modifier = Modifier
-          .weight(0.51f)
+          .weight(1f)
           .fillMaxHeight()
-          .padding(vertical = 12.dp, horizontal = 10.dp),
+          .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.Start
       ) {
@@ -377,17 +348,15 @@ fun EgyptItemCard(
           maxLines = 1,
           overflow = TextOverflow.Ellipsis
         )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-          GlassBadge(text = item.tag1)
-          if (item.tag2.isNotBlank()) GlassBadge(text = item.tag2)
+        Spacer(Modifier.height(7.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+          if (item.tag1.isNotBlank()) GlassBadge(item.tag1)
+          if (item.tag2.isNotBlank()) GlassBadge(item.tag2)
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
+        Spacer(Modifier.height(7.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
+          Icon(item.subtitleIcon, null, GoldMuted, Modifier.size(15.dp))
+          Spacer(Modifier.width(5.dp))
           Text(
             text = item.subtitle,
             style = MaterialTheme.typography.bodySmall,
@@ -395,47 +364,47 @@ fun EgyptItemCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
           )
-          Spacer(modifier = Modifier.width(5.dp))
-          Icon(
-            imageVector = item.subtitleIcon,
-            contentDescription = "Info",
-            tint = GoldMuted,
-            modifier = Modifier.size(13.dp)
-          )
         }
       }
 
       Box(
         modifier = Modifier
-          .width(1.dp)
+          .width(104.dp)
           .fillMaxHeight()
-          .background(GlassBorderColor.copy(alpha = 0.4f))
-      )
+          .padding(vertical = 8.dp, end = 8.dp)
+          .clip(RoundedCornerShape(13.dp))
+      ) {
+        Image(
+          painter = painterResource(item.imageRes),
+          contentDescription = item.title,
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.fillMaxSize()
+        )
+        Box(
+          modifier = Modifier.fillMaxSize().background(
+            Brush.horizontalGradient(listOf(GlassCardBg.copy(alpha = 0.94f), Color.Transparent))
+          )
+        )
+      }
 
       Column(
         modifier = Modifier
-          .weight(0.14f)
+          .width(44.dp)
           .fillMaxHeight()
-          .background(Color(0x400C0D10)),
+          .background(Color(0x330C0D10)),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.SpaceEvenly
+        verticalArrangement = Arrangement.Center
       ) {
-        IconButton(onClick = onBookmarkToggle, modifier = Modifier.size(32.dp)) {
+        IconButton(onClick = onBookmarkToggle, modifier = Modifier.size(30.dp)) {
           Icon(
             imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
-            contentDescription = "Bookmark",
-            tint = if (isBookmarked) GoldMain else GoldMuted.copy(alpha = 0.85f),
-            modifier = Modifier.size(21.dp)
+            contentDescription = "حفظ",
+            tint = if (isBookmarked) GoldMain else GoldMuted,
+            modifier = Modifier.size(18.dp)
           )
         }
-
-        IconButton(onClick = onShareClick, modifier = Modifier.size(32.dp)) {
-          Icon(
-            imageVector = Icons.Outlined.Share,
-            contentDescription = "Share",
-            tint = GoldMuted.copy(alpha = 0.85f),
-            modifier = Modifier.size(20.dp)
-          )
+        IconButton(onClick = onShareClick, modifier = Modifier.size(30.dp)) {
+          Icon(Icons.Outlined.Share, "مشاركة", GoldMuted, Modifier.size(18.dp))
         }
       }
     }

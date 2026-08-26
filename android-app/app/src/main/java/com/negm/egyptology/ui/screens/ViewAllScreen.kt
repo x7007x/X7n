@@ -5,11 +5,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +24,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.WorkspacePremium
 import androidx.compose.material3.Icon
@@ -38,6 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -49,6 +54,7 @@ import com.negm.egyptology.ui.components.SearchBarSection
 import com.negm.egyptology.ui.components.shareEgyptArticle
 import com.negm.egyptology.ui.theme.DarkPageBg
 import com.negm.egyptology.ui.theme.GlassBorderColor
+import com.negm.egyptology.ui.theme.GlassDarkBg
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
 
@@ -60,136 +66,77 @@ fun ViewAllScreen(
   onBookmarkToggle: (String) -> Unit,
   onItemClick: (EgyptItem) -> Unit,
   onBack: () -> Unit,
-  onShowFavorites: () -> Unit
+  onShowFavorites: () -> Unit,
+  favoritesOnly: Boolean = false,
+  onShowAll: () -> Unit = {}
 ) {
   val context = LocalContext.current
-  var selectedCategory by remember { mutableStateOf(initialCategory) }
-  var searchQuery by remember { mutableStateOf("") }
-
-  val allCategoriesFilter = remember(catalog) {
-    listOf("الكل") + catalog.categories.map { it.title }
+  var selectedCategory by remember(initialCategory, favoritesOnly) { mutableStateOf(initialCategory) }
+  var searchQuery by remember(favoritesOnly) { mutableStateOf("") }
+  val sourceItems = remember(catalog, bookmarkedIds, favoritesOnly) {
+    if (favoritesOnly) catalog.items.filter { it.id in bookmarkedIds } else catalog.items
   }
-
-  val displayedItems = remember(selectedCategory, searchQuery, catalog) {
+  val categories = remember(sourceItems) { listOf("الكل") + sourceItems.map { it.category }.distinct() }
+  if (selectedCategory !in categories) selectedCategory = "الكل"
+  val displayedItems = remember(sourceItems, selectedCategory, searchQuery) {
     val q = searchQuery.trim()
-    val base =
-      if (selectedCategory == "الكل") catalog.items
-      else catalog.items.filter { it.category == selectedCategory }
-    if (searchQuery.isBlank()) {
-      base
-    } else {
-      base.filter {
-        it.title.contains(q, ignoreCase = true) ||
-          it.tag1.contains(q, ignoreCase = true) ||
-          it.tag2.contains(q, ignoreCase = true) ||
-          it.subtitle.contains(q, ignoreCase = true)
-      }
+    val categoryItems = if (selectedCategory == "الكل") sourceItems else sourceItems.filter { it.category == selectedCategory }
+    if (q.isBlank()) categoryItems else categoryItems.filter {
+      it.title.contains(q, true) || it.tag1.contains(q, true) || it.tag2.contains(q, true) || it.subtitle.contains(q, true)
     }
   }
 
-  Column(
-    modifier = Modifier
-      .fillMaxSize()
-      .background(DarkPageBg)
-  ) {
-    // Top Bar
+  Column(modifier = Modifier.fillMaxSize().background(DarkPageBg)) {
     Row(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 18.dp, vertical = 14.dp),
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
       verticalAlignment = Alignment.CenterVertically,
-      horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+      horizontalArrangement = Arrangement.SpaceBetween
     ) {
       Row(verticalAlignment = Alignment.CenterVertically) {
         IconButton(
           onClick = onBack,
-          modifier = Modifier
-            .size(40.dp)
-            .border(1.dp, GlassBorderColor, CircleShape)
-            .background(Color(0x33DFB24C), CircleShape)
+          modifier = Modifier.size(36.dp).clip(CircleShape).background(GlassDarkBg).border(1.dp, GlassBorderColor, CircleShape)
         ) {
-          Icon(
-            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = "Back",
-            tint = GoldMain,
-            modifier = Modifier.size(22.dp)
-          )
+          Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع", GoldMain, Modifier.size(18.dp))
         }
-        Spacer(modifier = Modifier.width(12.dp))
+        Spacer(Modifier.width(10.dp))
         Column {
-          Text(
-            text = "سجل الآثار المصرية",
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
-            color = GoldMain
-          )
-          Text(
-            text = "مجموع ${displayedItems.size} عنصراً مسجلاً",
-            style = MaterialTheme.typography.bodySmall,
-            color = TextMutedColor
-          )
+          Text(if (favoritesOnly) "المفضلة" else "كل العناصر", MaterialTheme.typography.titleLarge, FontWeight.Bold, GoldMain)
+          Text("${displayedItems.size} عنصر", MaterialTheme.typography.bodySmall, color = TextMutedColor)
         }
       }
-
       Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = onShowFavorites) {
-          Text(
-            text = "المفضلة",
-            style = MaterialTheme.typography.labelLarge,
-            color = GoldMain
-          )
+        TextButton(onClick = if (favoritesOnly) onShowAll else onShowFavorites) {
+          Text(if (favoritesOnly) "الكل" else "المفضلة", style = MaterialTheme.typography.labelLarge, color = GoldMain)
         }
         Icon(
-          imageVector = Icons.Outlined.WorkspacePremium,
-          contentDescription = "Egypt Emblem",
+          imageVector = if (favoritesOnly) Icons.Outlined.Bookmark else Icons.Outlined.WorkspacePremium,
+          contentDescription = null,
           tint = GoldMain,
-          modifier = Modifier.size(26.dp)
+          modifier = Modifier.size(22.dp)
         )
       }
     }
 
     SearchBarSection(query = searchQuery, onQueryChange = { searchQuery = it })
-
-    Spacer(modifier = Modifier.height(4.dp))
-
     LazyRow(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(vertical = 8.dp),
+      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
       contentPadding = PaddingValues(horizontal = 18.dp),
-      horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+      horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-      items(allCategoriesFilter) { cat ->
-        FilterChip(label = cat, isSelected = cat == selectedCategory, onClick = { selectedCategory = cat })
+      items(categories) { category ->
+        FilterChip(category, category == selectedCategory) { selectedCategory = category }
       }
     }
 
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .weight(1f)
-    ) {
+    LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
       if (displayedItems.isEmpty()) {
         item {
-          Box(
-            modifier = Modifier
-              .fillMaxWidth()
-              .padding(top = 60.dp),
-            contentAlignment = Alignment.Center
-          ) {
+          Box(Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Icon(
-                imageVector = Icons.Outlined.SearchOff,
-                contentDescription = "Empty",
-                tint = TextMutedColor,
-                modifier = Modifier.size(48.dp)
-              )
-              Spacer(modifier = Modifier.height(10.dp))
-              Text(
-                text = "لا توجد نتائج مطابقة لبحثك",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextMutedColor
-              )
+              Icon(Icons.Outlined.SearchOff, "لا توجد نتائج", TextMutedColor, Modifier.size(40.dp))
+              Spacer(Modifier.height(10.dp))
+              Text(if (favoritesOnly) "لا توجد عناصر محفوظة" else "لا توجد نتائج مطابقة", color = TextMutedColor)
             }
           }
         }
@@ -197,14 +144,14 @@ fun ViewAllScreen(
         item {
           AnimatedContent(
             targetState = displayedItems,
-            transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
-            label = "all_items_transition"
+            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(140)) },
+            label = "collectionItemsTransition"
           ) { itemsForFilter ->
             Column {
               itemsForFilter.forEach { item ->
                 EgyptItemCard(
                   item = item,
-                  isBookmarked = bookmarkedIds.contains(item.id),
+                  isBookmarked = item.id in bookmarkedIds,
                   onBookmarkToggle = { onBookmarkToggle(item.id) },
                   onShareClick = { shareEgyptArticle(context, item) },
                   onClick = { onItemClick(item) }
@@ -214,9 +161,20 @@ fun ViewAllScreen(
           }
         }
       }
-      item {
-        Spacer(modifier = Modifier.height(115.dp))
-      }
+      item { Spacer(Modifier.height(115.dp)) }
     }
+  }
+}
+
+@Composable
+fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
+  Box(
+    modifier = Modifier
+      .clip(RoundedCornerShape(20.dp))
+      .background(if (isSelected) Color(0x33DFB24C) else GlassDarkBg)
+      .clickable(onClick = onClick)
+      .padding(horizontal = 14.dp, vertical = 6.dp)
+  ) {
+    Text(label, style = MaterialTheme.typography.labelMedium, color = if (isSelected) GoldMain else TextMutedColor, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal)
   }
 }

@@ -102,7 +102,7 @@ fun ArticleDetailScreen(
         Row(
           modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 18.dp, vertical = 18.dp)
+            .padding(horizontal = 18.dp, vertical = 14.dp)
             .align(Alignment.TopCenter),
           horizontalArrangement = Arrangement.SpaceBetween,
           verticalAlignment = Alignment.CenterVertically
@@ -110,46 +110,46 @@ fun ArticleDetailScreen(
           IconButton(
             onClick = onBack,
             modifier = Modifier
-              .size(40.dp)
-              .border(1.2.dp, GlassBorderColor, CircleShape)
+              .size(34.dp)
+              .border(1.dp, GlassBorderColor, CircleShape)
               .background(GlassDarkBg, CircleShape)
           ) {
             Icon(
               imageVector = Icons.AutoMirrored.Filled.ArrowBack,
               contentDescription = "Back",
               tint = GoldMain,
-              modifier = Modifier.size(22.dp)
+              modifier = Modifier.size(18.dp)
             )
           }
 
-          Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+          Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             IconButton(
               onClick = onShareClick,
               modifier = Modifier
-                .size(40.dp)
-                .border(1.2.dp, GlassBorderColor, CircleShape)
+                .size(34.dp)
+                .border(1.dp, GlassBorderColor, CircleShape)
                 .background(GlassDarkBg, CircleShape)
             ) {
               Icon(
                 imageVector = Icons.Outlined.Share,
                 contentDescription = "Share",
                 tint = GoldMain,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(18.dp)
               )
             }
 
             IconButton(
               onClick = onBookmarkToggle,
               modifier = Modifier
-                .size(40.dp)
-                .border(1.2.dp, GlassBorderColor, CircleShape)
+                .size(34.dp)
+                .border(1.dp, GlassBorderColor, CircleShape)
                 .background(GlassDarkBg, CircleShape)
             ) {
               Icon(
                 imageVector = if (isBookmarked) Icons.Filled.Bookmark else Icons.Outlined.BookmarkBorder,
                 contentDescription = "Bookmark",
                 tint = if (isBookmarked) GoldMain else GoldLightAccent.copy(alpha = 0.7f),
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(18.dp)
               )
             }
           }
