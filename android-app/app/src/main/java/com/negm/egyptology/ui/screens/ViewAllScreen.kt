@@ -42,7 +42,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.clip
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -97,12 +97,12 @@ fun ViewAllScreen(
           onClick = onBack,
           modifier = Modifier.size(36.dp).clip(CircleShape).background(GlassDarkBg).border(1.dp, GlassBorderColor, CircleShape)
         ) {
-          Icon(Icons.AutoMirrored.Filled.ArrowBack, "رجوع", GoldMain, Modifier.size(18.dp))
+          Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "رجوع", tint = GoldMain, modifier = Modifier.size(18.dp))
         }
         Spacer(Modifier.width(10.dp))
         Column {
-          Text(if (favoritesOnly) "المفضلة" else "كل العناصر", MaterialTheme.typography.titleLarge, FontWeight.Bold, GoldMain)
-          Text("${displayedItems.size} عنصر", MaterialTheme.typography.bodySmall, color = TextMutedColor)
+          Text(text = if (favoritesOnly) "المفضلة" else "كل العناصر", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = GoldMain)
+          Text(text = "${displayedItems.size} عنصر", style = MaterialTheme.typography.bodySmall, color = TextMutedColor)
         }
       }
       Row(verticalAlignment = Alignment.CenterVertically) {
@@ -134,7 +134,7 @@ fun ViewAllScreen(
         item {
           Box(Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Icon(Icons.Outlined.SearchOff, "لا توجد نتائج", TextMutedColor, Modifier.size(40.dp))
+              Icon(imageVector = Icons.Outlined.SearchOff, contentDescription = "لا توجد نتائج", tint = TextMutedColor, modifier = Modifier.size(40.dp))
               Spacer(Modifier.height(10.dp))
               Text(if (favoritesOnly) "لا توجد عناصر محفوظة" else "لا توجد نتائج مطابقة", color = TextMutedColor)
             }

@@ -355,7 +355,7 @@ fun EgyptItemCard(
         }
         Spacer(Modifier.height(7.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-          Icon(item.subtitleIcon, null, GoldMuted, Modifier.size(15.dp))
+          Icon(imageVector = item.subtitleIcon, contentDescription = null, tint = GoldMuted, modifier = Modifier.size(15.dp))
           Spacer(Modifier.width(5.dp))
           Text(
             text = item.subtitle,
@@ -404,7 +404,7 @@ fun EgyptItemCard(
           )
         }
         IconButton(onClick = onShareClick, modifier = Modifier.size(30.dp)) {
-          Icon(Icons.Outlined.Share, "مشاركة", GoldMuted, Modifier.size(18.dp))
+          Icon(imageVector = Icons.Outlined.Share, contentDescription = "مشاركة", tint = GoldMuted, modifier = Modifier.size(18.dp))
         }
       }
     }
