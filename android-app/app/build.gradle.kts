@@ -19,10 +19,9 @@ plugins {
 // ---------------------------------------------------------------------------
 // PKCS12 keystores encrypt the key with the STORE password, so both
 // credentials must be the exact same fixed value.
-val DEBUG_STORE_SECRET = "egyptology-debug-store"
-val debugStorePassword = DEBUG_STORE_SECRET
+val debugStorePassword = "cb0a5db4-8356-4bd5-830c-bcac1c058525"
 val debugKeyAlias = "EgyptologyDebugKey"
-val debugKeyPassword = DEBUG_STORE_SECRET
+val debugKeyPassword = debugStorePassword
 
 val debugKeystoreFile = rootProject.file("debug.keystore")
 
