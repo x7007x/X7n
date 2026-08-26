@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.shape.RectangleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Bookmark
@@ -373,7 +372,6 @@ fun EgyptItemCard(
           .width(104.dp)
           .fillMaxHeight()
           .padding(top = 8.dp, bottom = 8.dp, end = 8.dp)
-          .clip(RectangleShape)
       ) {
         Image(
           painter = painterResource(item.imageRes),
