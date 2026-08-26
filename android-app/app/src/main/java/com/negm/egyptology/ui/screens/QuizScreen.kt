@@ -41,6 +41,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.negm.egyptology.data.Catalog
+import com.negm.egyptology.ui.theme.BodyTextLight
 import com.negm.egyptology.ui.theme.DarkPageBg
 import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GlassBorderSubtle
@@ -72,7 +73,7 @@ fun QuizScreen(catalog: Catalog) {
         modifier = Modifier
           .size(36.dp)
           .border(1.dp, GlassBorderColor, CircleShape)
-          .background(Color(0xFFF1E1C4), CircleShape),
+          .background(Color(0xFF3D2C12), CircleShape),
         contentAlignment = Alignment.Center
       ) {
         Icon(
@@ -111,7 +112,7 @@ fun QuizScreen(catalog: Catalog) {
           text = q.question,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
-          color = Color(0xFF6D4712),
+          color = GoldLightAccent,
           lineHeight = 24.sp
         )
 
@@ -129,7 +130,7 @@ fun QuizScreen(catalog: Catalog) {
           val bgColor = when {
             isSubmitted && isCorrect -> Color(0x334CAF50)
             isSubmitted && isCurrentChoice && !isCorrect -> Color(0x33E53935)
-            isCurrentChoice -> Color(0xFFF1E1C4)
+            isCurrentChoice -> Color(0xFF3D2C12)
             else -> GlassDarkBg
           }
 
@@ -146,7 +147,7 @@ fun QuizScreen(catalog: Catalog) {
             Text(
               text = option,
               style = MaterialTheme.typography.bodyMedium,
-              color = if (isCurrentChoice) GoldMain else Color(0xFF3C3934),
+              color = if (isCurrentChoice) GoldMain else BodyTextLight,
               fontWeight = if (isCurrentChoice) FontWeight.Bold else FontWeight.Normal
             )
           }
@@ -165,7 +166,7 @@ fun QuizScreen(catalog: Catalog) {
             enabled = selectedAnswer != null,
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = Color.White
+              contentColor = Color(0xFF1A1205)
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
@@ -188,7 +189,7 @@ fun QuizScreen(catalog: Catalog) {
             },
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = Color.White
+              contentColor = Color(0xFF1A1205)
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()

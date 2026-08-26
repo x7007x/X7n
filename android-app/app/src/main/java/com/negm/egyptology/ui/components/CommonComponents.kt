@@ -224,7 +224,7 @@ private fun CategoryItem(
       .width(72.dp)
       .height(82.dp)
       .clip(RoundedCornerShape(16.dp))
-      .background(if (isSelected) Color(0x33DFB24C) else GlassCardBg)
+      .background(if (isSelected) Color(0x333D2C12) else GlassCardBg)
       .border(
         width = 1.dp,
         color = borderColor,
@@ -395,7 +395,7 @@ fun EgyptItemCard(
         modifier = Modifier
           .width(44.dp)
           .fillMaxHeight()
-          .background(Color(0x330C0D10)),
+          .background(SecondarySurface.copy(alpha = 0.82f)),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
       ) {
@@ -450,7 +450,7 @@ fun TableRowItem(field: String, value: String, isEven: Boolean) {
   Row(
     modifier = Modifier
       .fillMaxWidth()
-      .background(if (isEven) Color(0x221F222C) else Color.Transparent, RoundedCornerShape(8.dp))
+      .background(if (isEven) SecondarySurface.copy(alpha = 0.78f) else Color.Transparent, RoundedCornerShape(8.dp))
       .padding(horizontal = 10.dp, vertical = 8.dp),
     verticalAlignment = Alignment.CenterVertically
   ) {
