@@ -72,7 +72,7 @@ fun QuizScreen(catalog: Catalog) {
         modifier = Modifier
           .size(36.dp)
           .border(1.dp, GlassBorderColor, CircleShape)
-          .background(Color(0x33DFB24C), CircleShape),
+          .background(Color(0xFFF1E1C4), CircleShape),
         contentAlignment = Alignment.Center
       ) {
         Icon(
@@ -111,7 +111,7 @@ fun QuizScreen(catalog: Catalog) {
           text = q.question,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
-          color = Color(0xFFF3D58C),
+          color = Color(0xFF6D4712),
           lineHeight = 24.sp
         )
 
@@ -129,7 +129,7 @@ fun QuizScreen(catalog: Catalog) {
           val bgColor = when {
             isSubmitted && isCorrect -> Color(0x334CAF50)
             isSubmitted && isCurrentChoice && !isCorrect -> Color(0x33E53935)
-            isCurrentChoice -> Color(0x33DFB24C)
+            isCurrentChoice -> Color(0xFFF1E1C4)
             else -> GlassDarkBg
           }
 
@@ -146,7 +146,7 @@ fun QuizScreen(catalog: Catalog) {
             Text(
               text = option,
               style = MaterialTheme.typography.bodyMedium,
-              color = if (isCurrentChoice) GoldMain else Color(0xFFE0DBD1),
+              color = if (isCurrentChoice) GoldMain else Color(0xFF3C3934),
               fontWeight = if (isCurrentChoice) FontWeight.Bold else FontWeight.Normal
             )
           }
@@ -165,7 +165,7 @@ fun QuizScreen(catalog: Catalog) {
             enabled = selectedAnswer != null,
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = DarkPageBg
+              contentColor = Color.White
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
@@ -188,7 +188,7 @@ fun QuizScreen(catalog: Catalog) {
             },
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = DarkPageBg
+              contentColor = Color.White
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()

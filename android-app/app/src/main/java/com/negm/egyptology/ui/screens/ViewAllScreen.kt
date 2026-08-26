@@ -177,7 +177,7 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
   Box(
     modifier = Modifier
       .clip(RoundedCornerShape(20.dp))
-      .background(if (isSelected) Color(0x33DFB24C) else GlassDarkBg)
+      .background(if (isSelected) Color(0xFFEEDDBB) else GlassDarkBg)
       .clickable(onClick = onClick)
       .padding(horizontal = 14.dp, vertical = 6.dp)
   ) {

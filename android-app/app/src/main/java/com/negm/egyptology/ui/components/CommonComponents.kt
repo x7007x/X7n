@@ -20,8 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -82,7 +80,7 @@ fun GlassBadge(text: String) {
   Box(
     modifier = Modifier
       .border(1.dp, GlassBorderSubtle, RoundedCornerShape(12.dp))
-      .background(Color(0x66161820), RoundedCornerShape(12.dp))
+      .background(GlassCardBg, RoundedCornerShape(12.dp))
       .padding(horizontal = 8.dp, vertical = 3.dp)
   ) {
     Text(
@@ -108,7 +106,7 @@ fun SectionTitle(title: String, icon: androidx.compose.ui.graphics.vector.ImageV
       text = title,
       style = MaterialTheme.typography.titleMedium,
       fontWeight = FontWeight.Bold,
-      color = Color(0xFFF3D58C)
+      color = GoldMuted
     )
   }
 }
@@ -224,7 +222,7 @@ private fun CategoryItem(
       .width(72.dp)
       .height(82.dp)
       .clip(RoundedCornerShape(16.dp))
-      .background(if (isSelected) Color(0x33DFB24C) else Color(0x66181A22))
+      .background(if (isSelected) Color(0x33DFB24C) else GlassCardBg)
       .border(
         width = 1.dp,
         color = borderColor,
@@ -277,7 +275,7 @@ fun SectionHeader(
           text = meta.title,
           style = MaterialTheme.typography.titleMedium,
           fontWeight = FontWeight.Bold,
-          color = Color(0xFFF3D58C)
+          color = GoldMuted
         )
         Text(
           text = meta.subtitle,

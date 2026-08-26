@@ -1,26 +1,33 @@
 package com.negm.egyptology.ui.theme
 
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 
 private val EgyptColorScheme =
-  darkColorScheme(
+  lightColorScheme(
     primary = GoldMain,
+    onPrimary = Color.White,
+    primaryContainer = Color(0xFFF1DFC0),
+    onPrimaryContainer = Color(0xFF3A270B),
     secondary = GoldLightAccent,
-    tertiary = GoldMuted,
+    onSecondary = Color(0xFF2F210A),
+    tertiary = Color(0xFF4E7D70),
+    onTertiary = Color.White,
     background = DarkPageBg,
-    surface = GlassCardBg,
-    onPrimary = DarkPageBg,
-    onSecondary = DarkPageBg,
     onBackground = BodyTextLight,
+    surface = GlassCardBg,
     onSurface = BodyTextLight,
-    onSurfaceVariant = TextMutedColor
+    surfaceVariant = GlassDarkBg,
+    onSurfaceVariant = TextMutedColor,
+    outline = GlassBorderColor,
+    outlineVariant = GlassBorderSubtle
   )
 
 @Composable
 fun EgyptologyTheme(
-  darkTheme: Boolean = true, // Force dark theme for this design
+  darkTheme: Boolean = false,
   content: @Composable () -> Unit,
 ) {
   MaterialTheme(colorScheme = EgyptColorScheme, typography = Typography, content = content)
