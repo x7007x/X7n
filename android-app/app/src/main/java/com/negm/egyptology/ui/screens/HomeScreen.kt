@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -13,12 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.SearchOff
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -33,16 +29,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.animation.core.tween
+import androidx.compose.ui.unit.sp
 import com.negm.egyptology.R
 import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.ui.components.CategoriesSection
 import com.negm.egyptology.ui.components.EgyptItemCard
-import com.negm.egyptology.ui.components.SectionHeader
 import com.negm.egyptology.ui.components.SearchBarSection
 import com.negm.egyptology.ui.components.shareEgyptArticle
 import com.negm.egyptology.ui.theme.DarkPageBg
+import com.negm.egyptology.ui.theme.GlassCardBg
 import com.negm.egyptology.ui.theme.TextMutedColor
 
 @Composable
@@ -54,25 +51,30 @@ fun HomeScreen(
   onViewAllClick: (String) -> Unit
 ) {
   val context = LocalContext.current
-  var selectedCategory by remember { mutableStateOf(catalog.categories.first().title) }
   var searchQuery by remember { mutableStateOf("") }
-
-  val filteredItems = remember(selectedCategory, searchQuery, catalog) {
-    val itemsInCategory = catalog.items.filter { it.category == selectedCategory }
-    if (searchQuery.isBlank()) {
-      itemsInCategory
-    } else {
-      val q = searchQuery.trim()
-      itemsInCategory.filter {
-        it.title.contains(q, ignoreCase = true) ||
-          it.tag1.contains(q, ignoreCase = true) ||
-          it.tag2.contains(q, ignoreCase = true) ||
-          it.subtitle.contains(q, ignoreCase = true)
+  val categoryImages = remember(catalog) {
+    buildMap {
+      catalog.categories.forEach { category ->
+        catalog.items.firstOrNull { it.category == category.title }?.imageRes?.let { imageRes ->
+          put(category.title, imageRes)
+        }
       }
     }
   }
-
-  val categoryMeta = catalog.categoryMeta.firstOrNull { it.title == selectedCategory }
+  val searchResults = remember(searchQuery, catalog) {
+    if (searchQuery.isBlank()) {
+      emptyList()
+    } else {
+      val query = searchQuery.trim()
+      catalog.items.filter {
+        it.title.contains(query, ignoreCase = true) ||
+          it.category.contains(query, ignoreCase = true) ||
+          it.tag1.contains(query, ignoreCase = true) ||
+          it.tag2.contains(query, ignoreCase = true) ||
+          it.subtitle.contains(query, ignoreCase = true)
+      }
+    }
+  }
 
   LazyColumn(
     modifier = Modifier
@@ -80,7 +82,11 @@ fun HomeScreen(
       .background(DarkPageBg)
   ) {
     item {
-      Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .height(210.dp)
+      ) {
         Image(
           painter = painterResource(id = R.drawable.section_kings_background),
           contentDescription = "Egyptology header",
@@ -92,9 +98,11 @@ fun HomeScreen(
             .fillMaxSize()
             .background(
               Brush.verticalGradient(
-                0f to Color(0x55000000),
-                0.5f to Color(0x22000000),
-                1f to DarkPageBg
+                colors = listOf(
+                  Color(0x66000000),
+                  Color(0x22000000),
+                  DarkPageBg
+                )
               )
             ),
           contentAlignment = Alignment.Center
@@ -103,6 +111,8 @@ fun HomeScreen(
             text = "ايچبتتولوجي",
             style = MaterialTheme.typography.headlineLarge,
             color = Color.White,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 0.4.sp,
             maxLines = 1
           )
         }
@@ -115,67 +125,72 @@ fun HomeScreen(
       )
     }
     item {
-      CategoriesSection(
-        categories = catalog.categories,
-        selectedCategory = selectedCategory,
-        onCategorySelect = { selectedCategory = it }
+      Text(
+        text = "استكشف مصر القديمة",
+        style = MaterialTheme.typography.titleLarge,
+        color = Color.White,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(horizontal = 18.dp, vertical = 12.dp)
       )
     }
-    categoryMeta?.let { meta ->
+    item {
+      CategoriesSection(
+        categories = catalog.categories,
+        categoryImages = categoryImages,
+        selectedCategory = null,
+        onCategorySelect = onViewAllClick
+      )
+    }
+    if (searchQuery.isNotBlank()) {
       item {
-        SectionHeader(
-          meta = meta,
-          onViewAllClick = { onViewAllClick(selectedCategory) }
+        Text(
+          text = "نتائج البحث (${searchResults.size})",
+          style = MaterialTheme.typography.titleMedium,
+          color = TextMutedColor,
+          fontWeight = FontWeight.Bold,
+          modifier = Modifier.padding(horizontal = 18.dp, vertical = 10.dp)
         )
       }
-    }
-    if (filteredItems.isEmpty()) {
       item {
-        Box(
-          modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 40.dp, horizontal = 24.dp),
-          contentAlignment = Alignment.Center
-        ) {
-          Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Icon(
-              imageVector = Icons.Outlined.SearchOff,
-              contentDescription = "No results",
-              tint = TextMutedColor,
-              modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-              text = "لم يتم العثور على نتائج",
-              style = MaterialTheme.typography.bodyLarge,
-              color = TextMutedColor
-            )
-          }
-        }
-      }
-    } else {
-      item {
-        AnimatedContent(
-          targetState = filteredItems,
-          transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
-          label = "section_items_transition"
-        ) { itemsForCategory ->
-          Column {
-            itemsForCategory.forEach { item ->
-              EgyptItemCard(
-                item = item,
-                isBookmarked = bookmarkedIds.contains(item.id),
-                onBookmarkToggle = { onBookmarkToggle(item.id) },
-                onShareClick = { shareEgyptArticle(context, item) },
-                onClick = { onItemClick(item) }
-              )
+        if (searchResults.isEmpty()) {
+          Text(
+            text = "لم يتم العثور على نتائج",
+            style = MaterialTheme.typography.bodyLarge,
+            color = TextMutedColor,
+            modifier = Modifier
+              .fillMaxWidth()
+              .padding(horizontal = 18.dp, vertical = 28.dp)
+          )
+        } else {
+          AnimatedContent(
+            targetState = searchResults,
+            transitionSpec = { fadeIn(tween(260)) togetherWith fadeOut(tween(160)) },
+            label = "home_search_results_transition"
+          ) { itemsForSearch ->
+            Column {
+              itemsForSearch.forEach { item ->
+                EgyptItemCard(
+                  item = item,
+                  isBookmarked = bookmarkedIds.contains(item.id),
+                  onBookmarkToggle = { onBookmarkToggle(item.id) },
+                  onShareClick = { shareEgyptArticle(context, item) },
+                  onClick = { onItemClick(item) }
+                )
+              }
             }
           }
         }
       }
     }
     item {
-      Spacer(modifier = Modifier.height(115.dp))
+      Box(
+        modifier = Modifier
+          .fillMaxWidth()
+          .padding(horizontal = 18.dp, vertical = 6.dp)
+          .height(1.dp)
+          .background(GlassCardBg)
+      )
     }
+    item { Spacer(modifier = Modifier.height(115.dp)) }
   }
 }

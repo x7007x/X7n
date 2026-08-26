@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,8 +19,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -181,75 +178,109 @@ fun SearchBarSection(
 @Composable
 fun CategoriesSection(
   categories: List<Category>,
-  selectedCategory: String,
+  categoryImages: Map<String, Int>,
+  selectedCategory: String?,
   onCategorySelect: (String) -> Unit
 ) {
-  LazyRow(
+  Column(
     modifier = Modifier
       .fillMaxWidth()
-      .padding(vertical = 12.dp),
-    contentPadding = PaddingValues(horizontal = 18.dp),
-    horizontalArrangement = Arrangement.spacedBy(10.dp)
+      .padding(horizontal = 18.dp, vertical = 8.dp),
+    verticalArrangement = Arrangement.spacedBy(12.dp)
   ) {
-    items(categories) { category ->
-      val isSelected = category.title == selectedCategory
-      CategoryItem(
-        category = category,
-        isSelected = isSelected,
-        onClick = { onCategorySelect(category.title) }
-      )
+    categories.chunked(2).forEach { rowCategories ->
+      Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+      ) {
+        rowCategories.forEach { category ->
+          LargeCategoryCard(
+            category = category,
+            imageRes = categoryImages[category.title],
+            isSelected = category.title == selectedCategory,
+            onClick = { onCategorySelect(category.title) },
+            modifier = Modifier.weight(1f)
+          )
+        }
+        if (rowCategories.size == 1) Spacer(modifier = Modifier.weight(1f))
+      }
     }
   }
 }
 
 @Composable
-private fun CategoryItem(
+private fun LargeCategoryCard(
   category: Category,
+  imageRes: Int?,
   isSelected: Boolean,
-  onClick: () -> Unit
+  onClick: () -> Unit,
+  modifier: Modifier = Modifier
 ) {
   val borderColor by animateColorAsState(
-    targetValue = if (isSelected) GoldMain else GlassBorderSubtle,
+    targetValue = if (isSelected) Color.White else GlassBorderColor,
     animationSpec = tween(220),
     label = "category_border_color"
   )
-  val contentColor by animateColorAsState(
-    targetValue = if (isSelected) GoldMain else TextMutedColor,
-    animationSpec = tween(220),
-    label = "category_content_color"
-  )
-  Column(
-    horizontalAlignment = Alignment.CenterHorizontally,
-    verticalArrangement = Arrangement.Center,
-    modifier = Modifier
-      .width(72.dp)
-      .height(82.dp)
-      .clip(RoundedCornerShape(16.dp))
-      .background(if (isSelected) Color(0x333D2C12) else GlassCardBg)
-      .border(
-        width = 1.dp,
-        color = borderColor,
-        shape = RoundedCornerShape(16.dp)
-      )
+  val glyph = when (category.title) {
+    "الملوك" -> "𓀷"
+    "الآلهة" -> "𓀭"
+    "المتاحف" -> "𓏏"
+    "المقابر" -> "𓂀"
+    "الأهرامات" -> "𓉴"
+    "الآثار" -> "𓊽"
+    else -> "𓂀"
+  }
+
+  Box(
+    modifier = modifier
+      .height(156.dp)
+      .clip(RoundedCornerShape(18.dp))
+      .background(GlassCardBg)
+      .border(1.dp, borderColor, RoundedCornerShape(18.dp))
       .clickable(onClick = onClick)
-      .padding(4.dp)
   ) {
-    Icon(
-      imageVector = category.icon,
-      contentDescription = category.title,
-      tint = contentColor,
-      modifier = Modifier.size(26.dp)
+    imageRes?.let { resource ->
+      Image(
+        painter = painterResource(resource),
+        contentDescription = category.title,
+        contentScale = ContentScale.Crop,
+        modifier = Modifier.fillMaxSize()
+      )
+    }
+    Box(
+      modifier = Modifier
+        .fillMaxSize()
+        .background(
+          Brush.verticalGradient(
+            colors = listOf(
+              Color.Transparent,
+              Color(0x66000000),
+              GlassCardBg.copy(alpha = 0.98f)
+            )
+          )
+        )
     )
-    Spacer(modifier = Modifier.height(6.dp))
-    Text(
-      text = category.title,
-      style = MaterialTheme.typography.labelSmall,
-      color = contentColor,
-      textAlign = TextAlign.Center,
-      fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-      maxLines = 1,
-      overflow = TextOverflow.Ellipsis
-    )
+    Column(
+      modifier = Modifier
+        .align(Alignment.BottomStart)
+        .fillMaxWidth()
+        .padding(horizontal = 14.dp, vertical = 12.dp),
+      horizontalAlignment = Alignment.Start
+    ) {
+      Text(
+        text = glyph,
+        style = MaterialTheme.typography.headlineMedium,
+        color = Color.White,
+        lineHeight = 30.sp
+      )
+      Spacer(modifier = Modifier.height(2.dp))
+      Text(
+        text = category.title,
+        style = MaterialTheme.typography.titleMedium,
+        color = Color.White,
+        fontWeight = FontWeight.Bold
+      )
+    }
   }
 }
 

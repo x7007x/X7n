@@ -269,7 +269,7 @@ fun ArticleDetailScreen(
             .fillMaxWidth()
             .padding(horizontal = 18.dp, vertical = 10.dp)
             .clip(RoundedCornerShape(16.dp))
-            .background(Color(0x33DFB24C))
+            .background(Color(0xFF292929))
             .border(1.2.dp, GoldMain, RoundedCornerShape(16.dp))
             .padding(16.dp)
         ) {

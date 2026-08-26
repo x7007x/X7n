@@ -30,35 +30,27 @@ import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.FlatBottomNavigation
 import com.negm.egyptology.ui.components.NavTab
 import com.negm.egyptology.ui.screens.ArticleDetailScreen
-import com.negm.egyptology.ui.screens.FavoritesScreen
 import com.negm.egyptology.ui.screens.HomeScreen
-import com.negm.egyptology.ui.screens.MapScreen
-import com.negm.egyptology.ui.screens.MoreScreen
-import com.negm.egyptology.ui.screens.QuizScreen
 import com.negm.egyptology.ui.screens.ViewAllScreen
 import com.negm.egyptology.ui.theme.DarkPageBg
 
-/**
- * Root state holder: active tab, "view all" category, selected article and bookmarks.
- */
 class EgyptAppState {
   var tab by mutableStateOf(NavTab.HOME)
-  var viewAllCategory by mutableStateOf<String?>(null)
+  var exploreCategory by mutableStateOf("الكل")
   var selectedArticleId by mutableStateOf<String?>(null)
   val tabHistory = mutableStateListOf(NavTab.HOME)
+  val bookmarkedIds = mutableStateListOf("king_ramses2", "pyr_khufu", "art_mask")
 
   fun selectTab(nextTab: NavTab) {
     if (nextTab == tab) return
     tabHistory.add(nextTab)
     tab = nextTab
-    viewAllCategory = null
     selectedArticleId = null
   }
 
   fun goBack() {
     when {
       selectedArticleId != null -> selectedArticleId = null
-      viewAllCategory != null -> viewAllCategory = null
       tabHistory.size > 1 -> {
         tabHistory.removeAt(tabHistory.lastIndex)
         tab = tabHistory.last()
@@ -66,8 +58,6 @@ class EgyptAppState {
       tab != NavTab.HOME -> tab = NavTab.HOME
     }
   }
-
-  val bookmarkedIds = mutableStateListOf("king_ramses2", "pyr_khufu", "art_mask")
 
   fun toggleBookmark(id: String) {
     if (bookmarkedIds.contains(id)) bookmarkedIds.remove(id) else bookmarkedIds.add(id)
@@ -79,16 +69,13 @@ fun EgyptApp() {
   val context = LocalContext.current
   val catalog = remember { EgyptRepository.catalog(context.applicationContext) }
   val state = remember { EgyptAppState() }
+  val selectedArticle = state.selectedArticleId?.let { id -> catalog.items.firstOrNull { it.id == id } }
 
-  val selectedArticle =
-    state.selectedArticleId?.let { id -> catalog.items.firstOrNull { it.id == id } }
-
-  // Keep the last opened article composed so the exit animation has content.
   var lastArticle by remember { mutableStateOf<EgyptItem?>(null) }
   selectedArticle?.let { lastArticle = it }
 
   BackHandler(
-    enabled = selectedArticle != null || state.viewAllCategory != null || state.tabHistory.size > 1
+    enabled = selectedArticle != null || state.tabHistory.size > 1 || state.tab != NavTab.HOME
   ) {
     state.goBack()
   }
@@ -98,8 +85,8 @@ fun EgyptApp() {
     containerColor = DarkPageBg,
     bottomBar = {
       FlatBottomNavigation(
-        selectedTab = if (state.viewAllCategory != null) NavTab.HOME else state.tab,
-        onTabSelected = { tab -> state.selectTab(tab) }
+        selectedTab = state.tab,
+        onTabSelected = { state.selectTab(it) }
       )
     }
   ) { innerPadding ->
@@ -109,25 +96,23 @@ fun EgyptApp() {
         .padding(innerPadding)
         .background(DarkPageBg)
     ) {
-      // Animated movement between the main pages (RTL-aware slide + fade).
       AnimatedContent(
         targetState = state.tab,
         transitionSpec = {
           val from = tabsOrder.indexOf(initialState).let { if (it < 0) 0 else it }
           val to = tabsOrder.indexOf(targetState).let { if (it < 0) 0 else it }
-          // RTL: forward movement enters from the left edge.
           val direction = if (to >= from) -1 else 1
           (
             slideInHorizontally(
               initialOffsetX = { direction * it / 10 },
               animationSpec = tween(260, easing = FastOutSlowInEasing)
             ) + fadeIn(tween(220))
-            ) togetherWith (
+          ) togetherWith (
             slideOutHorizontally(
               targetOffsetX = { -direction * it / 10 },
               animationSpec = tween(220)
             ) + fadeOut(tween(170))
-            )
+          )
         },
         label = "tab_transition"
       ) { currentTab ->
@@ -135,47 +120,28 @@ fun EgyptApp() {
           NavTab.HOME -> HomeScreen(
             catalog = catalog,
             bookmarkedIds = state.bookmarkedIds.toSet(),
-            onBookmarkToggle = { state.toggleBookmark(it) },
+            onBookmarkToggle = state::toggleBookmark,
             onItemClick = { item -> state.selectedArticleId = item.id },
-            onViewAllClick = { category -> state.viewAllCategory = category }
-          )
-          NavTab.FAVORITES -> FavoritesScreen(
-            catalog = catalog,
-            bookmarkedIds = state.bookmarkedIds.toSet(),
-            onBookmarkToggle = { state.toggleBookmark(it) },
-            onItemClick = { item -> state.selectedArticleId = item.id },
-            onExploreClick = { state.selectTab(NavTab.HOME) },
-            onShowAllClick = {
-              state.selectTab(NavTab.HOME)
-              state.viewAllCategory = "الكل"
+            onViewAllClick = { category ->
+              state.exploreCategory = category
+              state.selectTab(NavTab.EXPLORE)
             }
           )
-          NavTab.MAP -> MapScreen(
+          NavTab.EXPLORE, NavTab.FAVORITES -> ViewAllScreen(
             catalog = catalog,
-            onItemClick = { item -> state.selectedArticleId = item.id }
+            initialCategory = state.exploreCategory,
+            bookmarkedIds = state.bookmarkedIds.toSet(),
+            onBookmarkToggle = state::toggleBookmark,
+            onItemClick = { item -> state.selectedArticleId = item.id },
+            onBack = { state.goBack() },
+            onShowFavorites = {
+              state.selectTab(if (currentTab == NavTab.EXPLORE) NavTab.FAVORITES else NavTab.EXPLORE)
+            },
+            favoritesOnly = currentTab == NavTab.FAVORITES
           )
-          NavTab.QUIZ -> QuizScreen(catalog)
-          NavTab.MORE -> MoreScreen(catalog)
         }
       }
 
-      // "View all" replaces the home list instantly while staying under the nav bar
-      state.viewAllCategory?.let { category ->
-        ViewAllScreen(
-          catalog = catalog,
-          initialCategory = category,
-          bookmarkedIds = state.bookmarkedIds.toSet(),
-          onBookmarkToggle = { state.toggleBookmark(it) },
-          onItemClick = { item -> state.selectedArticleId = item.id },
-          onBack = { state.viewAllCategory = null },
-          onShowFavorites = {
-            state.viewAllCategory = null
-            state.selectTab(NavTab.FAVORITES)
-          }
-        )
-      }
-
-      // Detail screen rises from the bottom as an overlay layer
       AnimatedVisibility(
         visible = selectedArticle != null && lastArticle != null,
         enter = slideInVertically(
@@ -197,7 +163,7 @@ fun EgyptApp() {
             onShareClick = {
               com.negm.egyptology.ui.components.shareEgyptArticle(context, article)
             },
-            onBack = { state.goBack() }
+            onBack = state::goBack
           )
         }
       }
@@ -205,5 +171,4 @@ fun EgyptApp() {
   }
 }
 
-private val tabsOrder =
-  listOf(NavTab.MAP, NavTab.FAVORITES, NavTab.HOME, NavTab.QUIZ, NavTab.MORE)
+private val tabsOrder = listOf(NavTab.EXPLORE, NavTab.HOME, NavTab.FAVORITES)

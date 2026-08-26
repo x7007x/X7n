@@ -73,6 +73,7 @@ fun ViewAllScreen(
   val context = LocalContext.current
   var selectedCategory by remember(initialCategory, favoritesOnly) { mutableStateOf(initialCategory) }
   var searchQuery by remember(favoritesOnly) { mutableStateOf("") }
+  var showQuiz by remember(favoritesOnly, initialCategory) { mutableStateOf(false) }
   val sourceItems = remember(catalog, bookmarkedIds, favoritesOnly) {
     if (favoritesOnly) catalog.items.filter { it.id in bookmarkedIds } else catalog.items
   }
@@ -124,50 +125,80 @@ fun ViewAllScreen(
       }
     }
 
-    SearchBarSection(query = searchQuery, onQueryChange = { searchQuery = it })
-    LazyRow(
-      modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-      contentPadding = PaddingValues(horizontal = 18.dp),
-      horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-      items(categories) { category ->
-        FilterChip(category, category == selectedCategory) { selectedCategory = category }
+    if (!favoritesOnly) {
+      Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 2.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+      ) {
+        Text(
+          text = if (showQuiz) "اختبر معرفتك" else "استكشف المحتوى",
+          style = MaterialTheme.typography.titleMedium,
+          color = TextMutedColor,
+          fontWeight = FontWeight.Bold
+        )
+        Button(
+          onClick = { showQuiz = !showQuiz },
+          modifier = Modifier.height(36.dp),
+          contentPadding = PaddingValues(horizontal = 14.dp, vertical = 0.dp),
+          colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF292929), contentColor = Color.White),
+          shape = RoundedCornerShape(18.dp)
+        ) {
+          Text(if (showQuiz) "المحتوى" else "اختبر معرفتك", style = MaterialTheme.typography.labelMedium)
+        }
       }
     }
 
-    LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
-      if (displayedItems.isEmpty()) {
-        item {
-          Box(Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-              Icon(imageVector = Icons.Outlined.SearchOff, contentDescription = "لا توجد نتائج", tint = TextMutedColor, modifier = Modifier.size(40.dp))
-              Spacer(Modifier.height(10.dp))
-              Text(if (favoritesOnly) "لا توجد عناصر محفوظة" else "لا توجد نتائج مطابقة", color = TextMutedColor)
+    if (showQuiz && !favoritesOnly) {
+      Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        QuizScreen(catalog)
+      }
+    } else {
+      SearchBarSection(query = searchQuery, onQueryChange = { searchQuery = it })
+      LazyRow(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        contentPadding = PaddingValues(horizontal = 18.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+      ) {
+        items(categories) { category ->
+          FilterChip(category, category == selectedCategory) { selectedCategory = category }
+        }
+      }
+
+      LazyColumn(modifier = Modifier.fillMaxWidth().weight(1f)) {
+        if (displayedItems.isEmpty()) {
+          item {
+            Box(Modifier.fillMaxWidth().padding(top = 60.dp), contentAlignment = Alignment.Center) {
+              Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(imageVector = Icons.Outlined.SearchOff, contentDescription = "لا توجد نتائج", tint = TextMutedColor, modifier = Modifier.size(40.dp))
+                Spacer(Modifier.height(10.dp))
+                Text(if (favoritesOnly) "لا توجد عناصر محفوظة" else "لا توجد نتائج مطابقة", color = TextMutedColor)
+              }
             }
           }
-        }
-      } else {
-        item {
-          AnimatedContent(
-            targetState = displayedItems,
-            transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(140)) },
-            label = "collectionItemsTransition"
-          ) { itemsForFilter ->
-            Column {
-              itemsForFilter.forEach { item ->
-                EgyptItemCard(
-                  item = item,
-                  isBookmarked = item.id in bookmarkedIds,
-                  onBookmarkToggle = { onBookmarkToggle(item.id) },
-                  onShareClick = { shareEgyptArticle(context, item) },
-                  onClick = { onItemClick(item) }
-                )
+        } else {
+          item {
+            AnimatedContent(
+              targetState = displayedItems,
+              transitionSpec = { fadeIn(tween(220)) togetherWith fadeOut(tween(140)) },
+              label = "collectionItemsTransition"
+            ) { itemsForFilter ->
+              Column {
+                itemsForFilter.forEach { item ->
+                  EgyptItemCard(
+                    item = item,
+                    isBookmarked = item.id in bookmarkedIds,
+                    onBookmarkToggle = { onBookmarkToggle(item.id) },
+                    onShareClick = { shareEgyptArticle(context, item) },
+                    onClick = { onItemClick(item) }
+                  )
+                }
               }
             }
           }
         }
+        item { Spacer(Modifier.height(115.dp)) }
       }
-      item { Spacer(Modifier.height(115.dp)) }
     }
   }
 }
@@ -177,7 +208,7 @@ fun FilterChip(label: String, isSelected: Boolean, onClick: () -> Unit) {
   Box(
     modifier = Modifier
       .clip(RoundedCornerShape(20.dp))
-      .background(if (isSelected) Color(0xFF3D2C12) else GlassDarkBg)
+      .background(if (isSelected) Color(0xFF292929) else GlassDarkBg)
       .clickable(onClick = onClick)
       .padding(horizontal = 14.dp, vertical = 6.dp)
   ) {

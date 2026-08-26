@@ -74,7 +74,7 @@ fun QuizScreen(catalog: Catalog) {
         modifier = Modifier
           .size(36.dp)
           .border(1.dp, GlassBorderColor, CircleShape)
-          .background(Color(0xFF3D2C12), CircleShape),
+          .background(Color(0xFF303030), CircleShape),
         contentAlignment = Alignment.Center
       ) {
         Icon(
@@ -123,15 +123,15 @@ fun QuizScreen(catalog: Catalog) {
           val isCurrentChoice = selectedAnswer == index
           val isCorrect = index == q.correctIndex
           val borderColor = when {
-            isSubmitted && isCorrect -> Color(0xFF4CAF50)
-            isSubmitted && isCurrentChoice && !isCorrect -> Color(0xFFE53935)
+            isSubmitted && isCorrect -> Color(0xFF777777)
+            isSubmitted && isCurrentChoice && !isCorrect -> Color(0xFF5A5A5A)
             isCurrentChoice -> GoldMain
             else -> GlassBorderSubtle
           }
           val bgColor = when {
-            isSubmitted && isCorrect -> Color(0x334CAF50)
-            isSubmitted && isCurrentChoice && !isCorrect -> Color(0x33E53935)
-            isCurrentChoice -> Color(0xFF3D2C12)
+            isSubmitted && isCorrect -> Color(0xFF2A2A2A)
+            isSubmitted && isCurrentChoice && !isCorrect -> Color(0xFF242424)
+            isCurrentChoice -> Color(0xFF303030)
             else -> GlassDarkBg
           }
 
@@ -167,7 +167,7 @@ fun QuizScreen(catalog: Catalog) {
             enabled = selectedAnswer != null,
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = Color(0xFF1A1205)
+              contentColor = Color(0xFF111111)
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
@@ -190,7 +190,7 @@ fun QuizScreen(catalog: Catalog) {
             },
             colors = ButtonDefaults.buttonColors(
               containerColor = GoldMain,
-              contentColor = Color(0xFF1A1205)
+              contentColor = Color(0xFF111111)
             ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
