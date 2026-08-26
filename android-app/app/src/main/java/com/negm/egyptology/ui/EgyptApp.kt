@@ -25,7 +25,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import com.negm.egyptology.data.Catalog
 import com.negm.egyptology.data.EgyptItem
 import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.CurvedBottomNavigation

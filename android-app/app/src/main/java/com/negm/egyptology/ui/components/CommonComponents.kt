@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -38,9 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
@@ -72,7 +69,6 @@ import com.negm.egyptology.ui.theme.GlassBorderSubtle
 import com.negm.egyptology.ui.theme.GlassCardBg
 import com.negm.egyptology.ui.theme.GlassBorderColor
 import com.negm.egyptology.ui.theme.GlassDarkBg
-import com.negm.egyptology.ui.theme.GoldLightAccent
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.GoldMuted
 import com.negm.egyptology.ui.theme.TextMutedColor

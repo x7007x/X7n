@@ -1,6 +1,0 @@
-{
-  "name": "Egyptology",
-  "description": "موسوعة علمية لعلم المصريات (Ancient Egypt Encyclopedia)",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}

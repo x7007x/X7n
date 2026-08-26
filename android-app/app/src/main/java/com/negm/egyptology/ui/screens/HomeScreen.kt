@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.animation.core.tween
 import com.negm.egyptology.R
 import com.negm.egyptology.data.Catalog
-import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.CategoriesSection
 import com.negm.egyptology.ui.components.EgyptItemCard
 import com.negm.egyptology.ui.components.SectionHeader

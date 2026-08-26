@@ -48,7 +48,6 @@ import com.negm.egyptology.ui.components.SearchBarSection
 import com.negm.egyptology.ui.components.shareEgyptArticle
 import com.negm.egyptology.ui.theme.DarkPageBg
 import com.negm.egyptology.ui.theme.GlassBorderColor
-import com.negm.egyptology.ui.theme.GlassDarkBg
 import com.negm.egyptology.ui.theme.GoldMain
 import com.negm.egyptology.ui.theme.TextMutedColor
 
@@ -96,7 +95,7 @@ fun ViewAllScreen(
     Row(
       modifier = Modifier
         .fillMaxWidth()
-        .padding(horizontal = 18.dp, vertical = 12.dp),
+        .padding(horizontal = 18.dp, vertical = 14.dp),
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
     ) {
@@ -106,7 +105,7 @@ fun ViewAllScreen(
           modifier = Modifier
             .size(40.dp)
             .border(1.dp, GlassBorderColor, CircleShape)
-            .background(GlassDarkBg, CircleShape)
+            .background(Color(0x33DFB24C), CircleShape)
         ) {
           Icon(
             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -119,7 +118,7 @@ fun ViewAllScreen(
         Column {
           Text(
             text = "سجل الآثار المصرية",
-            style = MaterialTheme.typography.titleMedium,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = GoldMain
           )

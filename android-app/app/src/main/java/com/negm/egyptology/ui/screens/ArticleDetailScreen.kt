@@ -32,7 +32,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.BorderStroke
 import com.negm.egyptology.data.EgyptItem
-import com.negm.egyptology.data.EgyptRepository
 import com.negm.egyptology.ui.components.EyeOfHorusIcon
 import com.negm.egyptology.ui.components.GlassBadge
 import com.negm.egyptology.ui.components.HorizontalDividerThin
