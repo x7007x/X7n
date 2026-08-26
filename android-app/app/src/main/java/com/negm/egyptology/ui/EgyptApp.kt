@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.negm.egyptology.data.EgyptItem
 import com.negm.egyptology.data.EgyptRepository
-import com.negm.egyptology.ui.components.CurvedBottomNavigation
+import com.negm.egyptology.ui.components.FlatBottomNavigation
 import com.negm.egyptology.ui.components.NavTab
 import com.negm.egyptology.ui.screens.ArticleDetailScreen
 import com.negm.egyptology.ui.screens.FavoritesScreen
@@ -97,7 +97,7 @@ fun EgyptApp() {
     modifier = Modifier.fillMaxSize(),
     containerColor = DarkPageBg,
     bottomBar = {
-      CurvedBottomNavigation(
+      FlatBottomNavigation(
         selectedTab = if (state.viewAllCategory != null) NavTab.HOME else state.tab,
         onTabSelected = { tab -> state.selectTab(tab) }
       )

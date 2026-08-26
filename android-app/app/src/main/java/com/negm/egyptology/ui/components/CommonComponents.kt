@@ -384,6 +384,11 @@ fun EgyptItemCard(
             Brush.horizontalGradient(listOf(GlassCardBg.copy(alpha = 0.94f), Color.Transparent))
           )
         )
+        Box(
+          modifier = Modifier.fillMaxSize().background(
+            Brush.verticalGradient(listOf(GlassCardBg.copy(alpha = 0.8f), Color.Transparent, GlassCardBg.copy(alpha = 0.8f)))
+          )
+        )
       }
 
       Column(

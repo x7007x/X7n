@@ -73,24 +73,6 @@ fun HomeScreen(
   }
 
   val categoryMeta = catalog.categoryMeta.firstOrNull { it.title == selectedCategory }
-  val sectionBackground = when (selectedCategory) {
-    "الملوك" -> R.drawable.section_kings_background
-    "المتاحف" -> R.drawable.section_museums_background
-    "المقابر" -> R.drawable.section_museums_background
-    "المجموعات الهرمية" -> R.drawable.section_map_background
-    "الآثار" -> R.drawable.section_collections_background
-    "المواقع الأثرية" -> R.drawable.section_map_background
-    else -> R.drawable.section_sources_background
-  }
-  val sectionIllustration = when (selectedCategory) {
-    "الملوك" -> R.drawable.section_kings_illustration
-    "المتاحف" -> R.drawable.section_museums_illustration
-    "المقابر" -> R.drawable.section_museums_illustration
-    "المجموعات الهرمية" -> R.drawable.section_map_illustration
-    "الآثار" -> R.drawable.section_collections_illustration
-    "المواقع الأثرية" -> R.drawable.section_map_illustration
-    else -> R.drawable.section_sources_illustration
-  }
 
   LazyColumn(
     modifier = Modifier
@@ -99,64 +81,30 @@ fun HomeScreen(
   ) {
     item {
       Box(modifier = Modifier.fillMaxWidth().height(200.dp)) {
-        AnimatedContent(
-          targetState = sectionBackground,
-          transitionSpec = { fadeIn(tween(320)) togetherWith fadeOut(tween(220)) },
-          label = "section_background_transition"
-        ) { backgroundRes ->
-          Image(
-            painter = painterResource(id = backgroundRes),
-            contentDescription = "Header",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-          )
-        }
-        AnimatedContent(
-          targetState = sectionIllustration,
-          transitionSpec = { fadeIn(tween(320)) togetherWith fadeOut(tween(220)) },
-          label = "section_illustration_transition"
-        ) { illustrationRes ->
-          Image(
-            painter = painterResource(id = illustrationRes),
-            contentDescription = null,
-            contentScale = ContentScale.Fit,
-            modifier = Modifier
-              .align(Alignment.TopEnd)
-              .padding(top = 18.dp, end = 18.dp)
-              .size(112.dp)
-          )
-        }
+        Image(
+          painter = painterResource(id = R.drawable.section_kings_background),
+          contentDescription = "Egyptology header",
+          contentScale = ContentScale.Crop,
+          modifier = Modifier.fillMaxSize()
+        )
         Box(
           modifier = Modifier
             .fillMaxSize()
             .background(
               Brush.verticalGradient(
-                0f to Color(0x33000000),
-                0.42f to Color.Transparent,
+                0f to Color(0x55000000),
+                0.5f to Color(0x22000000),
                 1f to DarkPageBg
               )
-            )
-        )
-        categoryMeta?.let { meta ->
-          Column(
-            modifier = Modifier
-              .align(Alignment.BottomEnd)
-              .padding(horizontal = 18.dp, vertical = 18.dp),
-            horizontalAlignment = Alignment.End
-          ) {
-            Text(
-              text = meta.title,
-              style = MaterialTheme.typography.headlineSmall,
-              color = com.negm.egyptology.ui.theme.GoldMain,
-              maxLines = 1
-            )
-            Text(
-              text = meta.subtitle,
-              style = MaterialTheme.typography.bodySmall,
-              color = Color.White.copy(alpha = 0.86f),
-              maxLines = 1
-            )
-          }
+            ),
+          contentAlignment = Alignment.Center
+        ) {
+          Text(
+            text = "ايچبتتولوجي",
+            style = MaterialTheme.typography.headlineLarge,
+            color = Color.White,
+            maxLines = 1
+          )
         }
       }
     }

@@ -1,6 +1,10 @@
 package com.negm.egyptology.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -53,7 +57,7 @@ enum class NavTab(val label: String, val activeIcon: ImageVector, val inactiveIc
 }
 
 @Composable
-fun CurvedBottomNavigation(selectedTab: NavTab, onTabSelected: (NavTab) -> Unit) {
+fun FlatBottomNavigation(selectedTab: NavTab, onTabSelected: (NavTab) -> Unit) {
   val tabs = NavTab.entries
   val haptics = LocalHapticFeedback.current
   Box(
@@ -89,6 +93,11 @@ fun CurvedBottomNavigation(selectedTab: NavTab, onTabSelected: (NavTab) -> Unit)
           animationSpec = tween(220),
           label = "navTint$index"
         )
+        val iconSize by animateDpAsState(
+          targetValue = if (selected) 26.dp else 22.dp,
+          animationSpec = tween(240),
+          label = "navIconSize$index"
+        )
         Column(
           modifier = Modifier
             .weight(1f)
@@ -109,17 +118,24 @@ fun CurvedBottomNavigation(selectedTab: NavTab, onTabSelected: (NavTab) -> Unit)
             imageVector = if (selected) tab.activeIcon else tab.inactiveIcon,
             contentDescription = tab.label,
             tint = tint,
-            modifier = Modifier.size(if (selected) 26.dp else 22.dp)
+            modifier = Modifier.size(iconSize)
           )
-          if (!selected) {
-            androidx.compose.foundation.layout.Spacer(Modifier.height(4.dp))
-            Text(
-              text = tab.label,
-              style = MaterialTheme.typography.labelSmall,
-              color = tint,
-              fontWeight = FontWeight.Medium,
-              maxLines = 1
-            )
+          AnimatedVisibility(
+            visible = !selected,
+            enter = androidx.compose.animation.fadeIn(tween(180)) + expandVertically(tween(180)),
+            exit = androidx.compose.animation.fadeOut(tween(140)) + shrinkVertically(tween(140)),
+            label = "navLabelVisibility$index"
+          ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+              androidx.compose.foundation.layout.Spacer(Modifier.height(4.dp))
+              Text(
+                text = tab.label,
+                style = MaterialTheme.typography.labelSmall,
+                color = tint,
+                fontWeight = FontWeight.Medium,
+                maxLines = 1
+              )
+            }
           }
         }
       }

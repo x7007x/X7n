@@ -30,11 +30,12 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Bookmark
 import androidx.compose.material.icons.outlined.SearchOff
 import androidx.compose.material.icons.outlined.WorkspacePremium
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -105,8 +106,14 @@ fun ViewAllScreen(
         }
       }
       Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = onShowFavorites) {
-          Text(if (favoritesOnly) "الكل" else "المفضلة", style = MaterialTheme.typography.labelLarge, color = GoldMain)
+        Button(
+          onClick = onShowFavorites,
+          modifier = Modifier.height(34.dp),
+          contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+          colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = GoldMain),
+          shape = RoundedCornerShape(17.dp)
+        ) {
+          Text(if (favoritesOnly) "الكل" else "المفضلة", style = MaterialTheme.typography.labelMedium, color = GoldMain)
         }
         Icon(
           imageVector = if (favoritesOnly) Icons.Outlined.Bookmark else Icons.Outlined.WorkspacePremium,
