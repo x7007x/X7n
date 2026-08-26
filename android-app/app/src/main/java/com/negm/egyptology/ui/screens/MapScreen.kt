@@ -75,7 +75,7 @@ fun MapScreen(
     ) {
       Box(
         modifier = Modifier
-          .size(40.dp)
+          .size(36.dp)
           .border(1.dp, GlassBorderColor, CircleShape)
           .background(Color(0x33DFB24C), CircleShape),
         contentAlignment = Alignment.Center
@@ -84,7 +84,7 @@ fun MapScreen(
           imageVector = Icons.Outlined.Place,
           contentDescription = "Map",
           tint = GoldMain,
-          modifier = Modifier.size(22.dp)
+          modifier = Modifier.size(20.dp)
         )
       }
       Spacer(modifier = Modifier.width(12.dp))
@@ -123,7 +123,7 @@ fun MapScreen(
                 imageVector = Icons.Outlined.Navigation,
                 contentDescription = "Map Guide",
                 tint = GoldMain,
-                modifier = Modifier.size(22.dp)
+                modifier = Modifier.size(20.dp)
               )
               Spacer(modifier = Modifier.width(8.dp))
               Text(

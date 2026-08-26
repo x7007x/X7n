@@ -21,7 +21,6 @@ fun FavoritesScreen(
     onItemClick = onItemClick,
     onBack = onExploreClick,
     onShowFavorites = onShowAllClick,
-    favoritesOnly = true,
-    onShowAll = onShowAllClick
+    favoritesOnly = true
   )
 }

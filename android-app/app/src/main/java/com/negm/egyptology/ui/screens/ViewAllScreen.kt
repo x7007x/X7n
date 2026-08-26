@@ -67,8 +67,7 @@ fun ViewAllScreen(
   onItemClick: (EgyptItem) -> Unit,
   onBack: () -> Unit,
   onShowFavorites: () -> Unit,
-  favoritesOnly: Boolean = false,
-  onShowAll: () -> Unit = {}
+  favoritesOnly: Boolean = false
 ) {
   val context = LocalContext.current
   var selectedCategory by remember(initialCategory, favoritesOnly) { mutableStateOf(initialCategory) }
@@ -106,14 +105,14 @@ fun ViewAllScreen(
         }
       }
       Row(verticalAlignment = Alignment.CenterVertically) {
-        TextButton(onClick = if (favoritesOnly) onShowAll else onShowFavorites) {
+        TextButton(onClick = onShowFavorites) {
           Text(if (favoritesOnly) "الكل" else "المفضلة", style = MaterialTheme.typography.labelLarge, color = GoldMain)
         }
         Icon(
           imageVector = if (favoritesOnly) Icons.Outlined.Bookmark else Icons.Outlined.WorkspacePremium,
           contentDescription = null,
           tint = GoldMain,
-          modifier = Modifier.size(22.dp)
+          modifier = Modifier.size(20.dp)
         )
       }
     }

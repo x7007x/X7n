@@ -48,7 +48,7 @@ fun MoreScreen(catalog: Catalog) {
     Row(verticalAlignment = Alignment.CenterVertically) {
       Box(
         modifier = Modifier
-          .size(40.dp)
+          .size(36.dp)
           .border(1.dp, GlassBorderColor, CircleShape)
           .background(Color(0x33DFB24C), CircleShape),
         contentAlignment = Alignment.Center
@@ -57,7 +57,7 @@ fun MoreScreen(catalog: Catalog) {
           imageVector = Icons.Outlined.MenuBook,
           contentDescription = "More",
           tint = GoldMain,
-          modifier = Modifier.size(22.dp)
+          modifier = Modifier.size(20.dp)
         )
       }
       Spacer(modifier = Modifier.width(12.dp))
